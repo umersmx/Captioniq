@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captioniq - Studio Subtitle Editor &amp; 60 FPS Burner</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M7 15h4M15 15h2M7 11h2M13 11h4'/%3E%3C/svg%3E">
+    <meta name="description" content="Burn subtitles into video at 60 FPS with zero dropped frames. Trending TikTok, Reels and YouTube presets. WhatsApp-native FastStart MP4 exports. 100% on-device privacy.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto:wght@400;500;700&family=Montserrat:wght@400;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Bebas+Neue&family=Raleway:wght@400;500;600;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Studio Ambient Lighting (Hardware-efficient, zero lag) -->
+    <div class="ambient-bg"></div>
+
+    <!-- Navigation Bar -->
+    <header class="app-header" id="topNav">
+        <div class="logo" id="navLogo">
+            <div class="logo-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect x="2" y="6" width="24" height="16" rx="3" stroke="url(#logoGrad)" stroke-width="2"/>
+                    <rect x="6" y="17" width="6" height="2" rx="1" fill="url(#logoGrad)"/>
+                    <rect x="14" y="17" width="8" height="2" rx="1" fill="url(#logoGrad)"/>
+                    <rect x="6" y="13" width="16" height="2" rx="1" fill="url(#logoGrad)" opacity="0.5"/>
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28">
+                            <stop stop-color="#38bdf8"/>
+                            <stop offset="1" stop-color="#2563eb"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="logo-text">Caption<span class="logo-accent">iq</span></span>
+            <span class="header-version-badge">STUDIO v2.4</span>
+        </div>
+
+        <nav class="header-nav">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#presetsShowcase" class="nav-link">Trending Presets</a>
+            <a href="#workflow" class="nav-link">How It Works</a>
+            <a href="#specs" class="nav-link">Architecture</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+        </nav>
+
+        <div class="header-actions">
+            <a href="#studioSection" class="btn-studio-nav" id="navLaunchStudioBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Launch Studio</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Flow -->
+    <main class="app-main">
+
+        <!-- ========================================================
+             1. HERO SECTION
+             ======================================================== -->
+        <section class="hero-section" id="hero">
+            <div class="hero-container">
+                <div class="hero-badge-wrap">
+                    <span class="hero-badge">
+                        <span class="badge-dot"></span>
+                        Hardware-Accelerated WebCodecs · WhatsApp FastStart MP4 Native
+                    </span>
+                </div>
+
+                <h1 class="hero-title">
+                    Burn Subtitles Into Video at <span class="gradient-text">60 FPS</span>.<br>Zero Dropped Frames.
+                </h1>
+
+                <p class="hero-subtitle">
+                    Deterministic frame-by-frame rendering engine with zero lag. Apply viral TikTok, Reels, and YouTube caption presets, or auto-transcribe speech in 90+ languages with Hindi &amp; Roman Hindish support. 100% on-device privacy.
+                </p>
+
+                <div class="hero-cta-group">
+                    <a href="#studioSection" class="btn-primary-hero" id="heroOpenStudioBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span>Start Subtitling Free</span>
+                    </a>
+                    <a href="#presetsShowcase" class="btn-secondary-hero">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                        <span>Explore Presets</span>
+                    </a>
+                </div>
+
+                <!-- Live Interactive Subtitle Teaser Card -->
+                <div class="hero-mockup-wrapper">
+                    <div class="hero-mockup-card">
+                        <div class="mockup-header">
+                            <div class="mockup-window-controls">
+                                <span class="win-btn close"></span>
+                                <span class="win-btn min"></span>
+                                <span class="win-btn max"></span>
+                            </div>
+                            <span class="mockup-title">Live Dynamic Style Simulator</span>
+                            <span class="mockup-badge">60 FPS Render</span>
+                        </div>
+                        <div class="mockup-display" id="heroMockupDisplay">
+                            <div class="mockup-video-bg">
+                                <div class="grid-overlay"></div>
+                                <div class="mockup-caption-wrap" id="heroMockupCaption">
+                                    <span class="caption-demo-text">UNBREAKABLE 60 FPS SUBTITLES</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-footer">
+                            <span class="mockup-footer-label">Interactive Preset Switcher:</span>
+                            <div class="mockup-preset-pills">
+                                <button type="button" class="mockup-pill active" data-mockup="hormozi">Hormozi</button>
+                                <button type="button" class="mockup-pill" data-mockup="mrbeast">MrBeast</button>
+                                <button type="button" class="mockup-pill" data-mockup="tiktok">TikTok Viral</button>
+                                <button type="button" class="mockup-pill" data-mockup="cinematic">Cinematic</button>
+                                <button type="button" class="mockup-pill" data-mockup="neon">Cyber Neon</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spec Cards Row -->
+                <div class="hero-specs-row">
+                    <div class="spec-card">
+                        <div class="spec-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </div>
+                        <div class="spec-info">
+                            <strong>0 Dropped Frames</strong>
+                            <span>WebCodecs deterministic seek</span>
+                        </div>
+                    </div>
+
+                    <div class="spec-card">
+                        <div class="spec-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="spec-info">
+                            <strong>WhatsApp Compatible</strong>
+                            <span>FastStart ISO MP4 container</span>
+                        </div>
+                    </div>
+
+                    <div class="spec-card">
+                        <div class="spec-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <div class="spec-info">
+                            <strong>100% On-Device</strong>
+                            <span>Zero cloud uploads, full privacy</span>
+                        </div>
+                    </div>
+
+                    <div class="spec-card">
+                        <div class="spec-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        </div>
+                        <div class="spec-info">
+                            <strong>Hindi &amp; Hindish</strong>
+                            <span>Devanagari &amp; Roman English</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================
+             2. STUDIO WORKSPACE (THE WORKING APP)
+             ======================================================== -->
+        <section class="studio-section" id="studioSection">
+            <div class="studio-section-header">
+                <div class="studio-title-group">
+                    <span class="section-tag">Interactive Workspace</span>
+                    <h2 class="section-title">Video Subtitle Studio</h2>
+                    <p class="section-desc">Drop your media files or auto-transcribe directly inside your browser.</p>
+                </div>
+            </div>
+
+            <!-- Upload Dropzone (Step 1) -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-grid">
+                    <!-- Video Upload -->
+                    <div class="upload-card" id="videoUploadCard">
+                        <div class="upload-dropzone" id="videoDropzone">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                    <rect x="4" y="10" width="40" height="28" rx="4" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+                                    <polygon points="20,18 20,30 30,24" fill="currentColor" opacity="0.6"/>
+                                    <path d="M24 4 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+                                    <path d="M20 8 L24 4 L28 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+                                </svg>
+                            </div>
+                            <h3 class="upload-title">Drop your video here</h3>
+                            <p class="upload-hint">or click to browse · MP4, WebM, MOV</p>
+                            <input type="file" id="videoInput" accept="video/*" hidden>
+                        </div>
+                        <div class="upload-status" id="videoStatus"></div>
+                    </div>
+
+                    <!-- Subtitle Upload -->
+                    <div class="upload-card" id="subtitleUploadCard">
+                        <div class="upload-dropzone" id="subtitleDropzone">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                    <rect x="8" y="4" width="32" height="40" rx="3" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+                                    <line x1="14" y1="14" x2="34" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+                                    <line x1="14" y1="20" x2="30" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+                                    <line x1="14" y1="26" x2="32" y2="26" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+                                    <line x1="14" y1="32" x2="26" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.2"/>
+                                </svg>
+                            </div>
+                            <h3 class="upload-title">Drop your subtitles here</h3>
+                            <p class="upload-hint">or click to browse · SRT, VTT, ASS</p>
+                            <input type="file" id="subtitleInput" accept=".srt,.vtt,.ass,.ssa,.sub,.txt" hidden>
+                        </div>
+                        <div class="upload-status" id="subtitleStatus"></div>
+                        <div class="auto-sub-card-footer">
+                            <div class="card-divider"><span>OR</span></div>
+                            <button type="button" class="ai-auto-btn" id="triggerAutoSubUploadBtn">
+                                <span class="ai-sparkle-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                                </span>
+                                <span class="ai-btn-text">Auto-Transcribe Video Speech</span>
+                                <span class="ai-tag">Speech-to-Text</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Editor Section (Step 2 - activated when video is loaded) -->
+            <div class="editor-section hidden" id="editorSection">
+                <!-- Video Preview -->
+                <div class="preview-panel">
+                    <div class="video-container" id="videoContainer">
+                        <video id="videoPlayer" crossorigin="anonymous"></video>
+                        <div class="subtitle-overlay" id="subtitleOverlay">
+                            <span class="subtitle-text" id="subtitleText"></span>
+                        </div>
+                    </div>
+
+                    <!-- Video Controls Bar -->
+                    <div class="video-controls">
+                        <button class="ctrl-btn" id="playPauseBtn" title="Play/Pause (Space)">
+                            <svg class="icon-play" width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><polygon points="4,2 16,9 4,16"/></svg>
+                            <svg class="icon-pause hidden" width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="3" y="2" width="4" height="14" rx="1"/><rect x="11" y="2" width="4" height="14" rx="1"/></svg>
+                        </button>
+                        <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+                        <div class="timeline" id="timeline">
+                            <div class="timeline-track">
+                                <div class="timeline-progress" id="timelineProgress"></div>
+                                <div class="timeline-handle" id="timelineHandle"></div>
+                            </div>
+                        </div>
+                        <button class="ctrl-btn" id="muteBtn" title="Mute/Unmute">
+                            <svg class="icon-vol" width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><polygon points="2,6 6,6 11,2 11,16 6,12 2,12"/><path d="M14,5 C15.5,7 15.5,11 14,13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                            <svg class="icon-muted hidden" width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><polygon points="2,6 6,6 11,2 11,16 6,12 2,12"/><line x1="13" y1="6" x2="17" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="17" y1="6" x2="13" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- File Info Chips -->
+                    <div class="file-chips">
+                        <button class="chip" id="changeVideoBtn">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10l8-8 2 2-8 8H2v-2z"/></svg>
+                            Change Video
+                        </button>
+                        <button class="chip" id="changeSubBtn">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10l8-8 2 2-8 8H2v-2z"/></svg>
+                            Change Subtitles
+                        </button>
+                        <button class="chip ai-chip" id="autoSubEditorBtn" title="Auto-Detect language &amp; generate subtitles from video">
+                            <span class="ai-sparkle-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                            </span>
+                            Auto-Transcribe
+                        </button>
+                        <button class="chip download-chip hidden" id="downloadSubBtn" title="Download generated subtitles (.SRT)">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 2v7M4 6l3 3 3-3M2 11h10"/></svg>
+                            Download .SRT
+                        </button>
+                        <div class="detected-lang-chip hidden" id="detectedLangChip">
+                            <span class="lang-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            </span>
+                            <span class="lang-label" id="detectedLangLabel">English</span>
+                        </div>
+                        <button class="chip script-chip hidden" id="toggleScriptBtn" title="Switch between Hindi (Devanagari) and Hindish (Roman English)">
+                            <span class="script-icon" style="font-weight:700;font-size:0.75rem;padding:1px 4px;background:rgba(255,255,255,0.1);border-radius:4px">Aa</span>
+                            <span id="toggleScriptLabel">Switch to Hindish (Roman)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Subtitle Typography &amp; Style</h2>
+                        <button class="reset-btn" id="resetStylesBtn" title="Reset to defaults">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2v5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 7A6 6 0 1 1 3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            Reset
+                        </button>
+                    </div>
+
+                    <div class="controls-scroll">
+                        <!-- Font Family -->
+                        <div class="control-group">
+                            <label class="control-label">Font Family</label>
+                            <select id="fontFamily" class="control-select">
+                                <option value="Inter">Inter</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Oswald">Oswald</option>
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Bebas Neue">Bebas Neue</option>
+                                <option value="Raleway">Raleway</option>
+                                <option value="Lato">Lato</option>
+                                <option value="Open Sans">Open Sans</option>
+                                <option value="Arial">Arial</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Impact">Impact</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Size -->
+                        <div class="control-group">
+                            <label class="control-label">Font Size <span class="val-badge" id="fontSizeVal">28px</span></label>
+                            <input type="range" id="fontSize" class="control-range" min="14" max="72" value="28">
+                        </div>
+
+                        <!-- Font Weight -->
+                        <div class="control-group">
+                            <label class="control-label">Font Weight</label>
+                            <div class="btn-group" id="fontWeightGroup">
+                                <button class="btn-opt" data-val="400">Regular</button>
+                                <button class="btn-opt" data-val="600">Semi</button>
+                                <button class="btn-opt active" data-val="700">Bold</button>
+                                <button class="btn-opt" data-val="900">Black</button>
+                            </div>
+                        </div>
+
+                        <!-- Text Color & Presets -->
+                        <div class="control-group">
+                            <label class="control-label">Text Color</label>
+                            <div class="color-row">
+                                <input type="color" id="textColor" class="control-color" value="#ffffff">
+                                <div class="preset-colors" id="textPresets">
+                                    <button class="color-swatch" data-color="#ffffff" style="background:#ffffff" title="White"></button>
+                                    <button class="color-swatch" data-color="#facc15" style="background:#facc15" title="Yellow"></button>
+                                    <button class="color-swatch" data-color="#4ade80" style="background:#4ade80" title="Green"></button>
+                                    <button class="color-swatch" data-color="#60a5fa" style="background:#60a5fa" title="Blue"></button>
+                                    <button class="color-swatch" data-color="#f472b6" style="background:#f472b6" title="Pink"></button>
+                                    <button class="color-swatch" data-color="#fb923c" style="background:#fb923c" title="Orange"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Background Color & Opacity -->
+                        <div class="control-group">
+                            <label class="control-label">Background Color</label>
+                            <div class="color-row">
+                                <input type="color" id="bgColor" class="control-color" value="#000000">
+                                <div class="preset-colors" id="bgPresets">
+                                    <button class="color-swatch" data-color="#000000" style="background:#000000; border:1px solid #555" title="Black"></button>
+                                    <button class="color-swatch" data-color="#1e1b4b" style="background:#1e1b4b" title="Indigo"></button>
+                                    <button class="color-swatch" data-color="#14532d" style="background:#14532d" title="Green"></button>
+                                    <button class="color-swatch" data-color="#7f1d1d" style="background:#7f1d1d" title="Red"></button>
+                                    <button class="color-swatch no-bg" data-color="transparent" title="None"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Background Opacity <span class="val-badge" id="bgOpacityVal">70%</span></label>
+                            <input type="range" id="bgOpacity" class="control-range" min="0" max="100" value="70">
+                        </div>
+
+                        <!-- Text Outline -->
+                        <div class="control-group">
+                            <label class="control-label">Text Outline <span class="val-badge" id="outlineVal">2px</span></label>
+                            <input type="range" id="outlineWidth" class="control-range" min="0" max="8" value="2">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Outline Color</label>
+                            <input type="color" id="outlineColor" class="control-color" value="#000000">
+                        </div>
+
+                        <!-- Text Shadow -->
+                        <div class="control-group">
+                            <label class="control-label">Text Shadow <span class="val-badge" id="shadowVal">3px</span></label>
+                            <input type="range" id="shadowBlur" class="control-range" min="0" max="20" value="3">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Shadow Color</label>
+                            <input type="color" id="shadowColor" class="control-color" value="#000000">
+                        </div>
+
+                        <!-- Text Transform -->
+                        <div class="control-group">
+                            <label class="control-label">Text Case</label>
+                            <div class="btn-group" id="textTransformGroup">
+                                <button class="btn-opt active" data-val="none">Normal</button>
+                                <button class="btn-opt" data-val="uppercase">UPPER</button>
+                                <button class="btn-opt" data-val="capitalize">Capital</button>
+                            </div>
+                        </div>
+
+                        <!-- Alignment -->
+                        <div class="control-group">
+                            <label class="control-label">Alignment</label>
+                            <div class="btn-group" id="textAlignGroup">
+                                <button class="btn-opt" data-val="left">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="1" y="2" width="12" height="2"/><rect x="1" y="6" width="8" height="2"/><rect x="1" y="10" width="10" height="2"/></svg>
+                                </button>
+                                <button class="btn-opt active" data-val="center">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="1" y="2" width="12" height="2"/><rect x="3" y="6" width="8" height="2"/><rect x="2" y="10" width="10" height="2"/></svg>
+                                </button>
+                                <button class="btn-opt" data-val="right">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="1" y="2" width="12" height="2"/><rect x="5" y="6" width="8" height="2"/><rect x="3" y="10" width="10" height="2"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Vertical Position -->
+                        <div class="control-group">
+                            <label class="control-label">Vertical Position <span class="val-badge" id="positionVal">85%</span></label>
+                            <input type="range" id="position" class="control-range" min="5" max="95" value="85">
+                            <div class="pos-presets">
+                                <button class="pos-preset-btn" data-pos="15">Top</button>
+                                <button class="pos-preset-btn" data-pos="50">Middle</button>
+                                <button class="pos-preset-btn active" data-pos="85">Bottom</button>
+                            </div>
+                        </div>
+
+                        <!-- Horizontal Offset -->
+                        <div class="control-group">
+                            <label class="control-label">Horizontal Offset <span class="val-badge" id="hOffsetVal">50%</span></label>
+                            <input type="range" id="hOffset" class="control-range" min="5" max="95" value="50">
+                        </div>
+
+                        <!-- Padding -->
+                        <div class="control-group">
+                            <label class="control-label">Padding <span class="val-badge" id="paddingVal">8px 16px</span></label>
+                            <div class="dual-range">
+                                <input type="range" id="paddingV" class="control-range" min="0" max="24" value="8" title="Vertical">
+                                <input type="range" id="paddingH" class="control-range" min="0" max="40" value="16" title="Horizontal">
+                            </div>
+                        </div>
+
+                        <!-- Border Radius -->
+                        <div class="control-group">
+                            <label class="control-label">Border Radius <span class="val-badge" id="borderRadiusVal">6px</span></label>
+                            <input type="range" id="borderRadius" class="control-range" min="0" max="24" value="6">
+                        </div>
+
+                        <!-- Style Presets -->
+                        <div class="control-group">
+                            <label class="control-label">Quick Presets</label>
+                            <div class="presets-grid">
+                                <button class="preset-btn" data-preset="classic">Classic</button>
+                                <button class="preset-btn" data-preset="netflix">Netflix</button>
+                                <button class="preset-btn" data-preset="youtube">YouTube</button>
+                                <button class="preset-btn" data-preset="cinematic">Cinematic</button>
+                                <button class="preset-btn" data-preset="karaoke">Karaoke</button>
+                                <button class="preset-btn" data-preset="minimal">Minimal</button>
+                                <button class="preset-btn" data-preset="retro">Retro</button>
+                                <button class="preset-btn" data-preset="neon">Neon</button>
+                            </div>
+                        </div>
+
+                        <!-- Trending Presets -->
+                        <div class="control-group">
+                            <label class="control-label">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:2px"><path d="M7 1L8.5 5H12.5L9.5 7.5L10.5 12L7 9.5L3.5 12L4.5 7.5L1.5 5H5.5L7 1Z" fill="#facc15" stroke="#facc15" stroke-width="0.5"/></svg>
+                                Trending Presets
+                            </label>
+                            <div class="presets-grid trending">
+                                <button class="preset-btn trending-btn" data-preset="hormozi">Hormozi</button>
+                                <button class="preset-btn trending-btn" data-preset="mrbeast">MrBeast</button>
+                                <button class="preset-btn trending-btn" data-preset="tiktok_auto">TikTok</button>
+                                <button class="preset-btn trending-btn" data-preset="ig_reels">IG Reels</button>
+                                <button class="preset-btn trending-btn" data-preset="ali_abdaal">Ali Abdaal</button>
+                                <button class="preset-btn trending-btn" data-preset="iman_gadzhi">Iman Gadzhi</button>
+                                <button class="preset-btn trending-btn" data-preset="viral_pop">Viral Pop</button>
+                                <button class="preset-btn trending-btn" data-preset="podcast_clip">Podcast</button>
+                                <button class="preset-btn trending-btn" data-preset="shorts_bold">Shorts Bold</button>
+                                <button class="preset-btn trending-btn" data-preset="aesthetic">Aesthetic</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Area -->
+                    <div class="export-area">
+                        <div class="export-settings-card">
+                            <div class="export-settings-header">
+                                <span class="export-settings-title">Export Settings</span>
+                                <span class="export-format-badge">FastStart MP4</span>
+                            </div>
+                            <div class="export-settings-grid">
+                                <div class="export-setting-item">
+                                    <label class="export-setting-label">Resolution</label>
+                                    <select id="exportResolution" class="control-select export-select">
+                                        <option value="original" selected>Source Resolution</option>
+                                        <option value="720p">720p HD (1280x720)</option>
+                                        <option value="1080p">1080p Full HD (1920x1080)</option>
+                                        <option value="4k">4K Ultra HD (3840x2160)</option>
+                                    </select>
+                                </div>
+                                <div class="export-setting-item">
+                                    <label class="export-setting-label">Framerate</label>
+                                    <select id="exportFramerate" class="control-select export-select">
+                                        <option value="30">30 FPS (Standard)</option>
+                                        <option value="60" selected>60 FPS (Ultra-Smooth)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="export-btn" id="exportBtn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3v10M6 9l4 4 4-4"/><path d="M3 14v3h14v-3"/></svg>
+                            Export Video with Subtitles
+                        </button>
+                        <div class="export-progress hidden" id="exportProgress">
+                            <div class="export-bar"><div class="export-bar-fill" id="exportBarFill"></div></div>
+                            <span class="export-label" id="exportLabel">Rendering… 0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================
+             3. TRENDING PRESETS SHOWCASE SECTION
+             ======================================================== -->
+        <section class="section-container" id="presetsShowcase">
+            <div class="section-header-center">
+                <span class="section-tag">Visual Typography</span>
+                <h2 class="section-title">Trending Creator Caption Styles</h2>
+                <p class="section-desc">One click applies viral TikTok, YouTube Shorts, and Instagram Reel typography directly to your video.</p>
+            </div>
+
+            <div class="showcase-grid">
+                <!-- Preset 1: Hormozi -->
+                <div class="showcase-card">
+                    <div class="showcase-preview-box bg-dark-1">
+                        <span class="preview-text-hormozi">SCALE TO $100M WITH SYSTEMS</span>
+                    </div>
+                    <div class="showcase-card-body">
+                        <div class="showcase-card-meta">
+                            <h4>Hormozi Viral Impact</h4>
+                            <span class="font-tag">Oswald 700</span>
+                        </div>
+                        <p>All-caps high-contrast typography with yellow highlight and thick outline for maximum mobile retention.</p>
+                        <button type="button" class="btn-use-preset" data-apply-preset="hormozi">Apply This Preset</button>
+                    </div>
+                </div>
+
+                <!-- Preset 2: MrBeast -->
+                <div class="showcase-card">
+                    <div class="showcase-preview-box bg-dark-2">
+                        <span class="preview-text-mrbeast">I GAVE AWAY $1,000,000!</span>
+                    </div>
+                    <div class="showcase-card-body">
+                        <div class="showcase-card-meta">
+                            <h4>MrBeast Punch</h4>
+                            <span class="font-tag">Impact 900</span>
+                        </div>
+                        <p>Ultra-bold sans-serif with bright yellow fill and heavy black border for explosive visual impact.</p>
+                        <button type="button" class="btn-use-preset" data-apply-preset="mrbeast">Apply This Preset</button>
+                    </div>
+                </div>
+
+                <!-- Preset 3: TikTok Auto -->
+                <div class="showcase-card">
+                    <div class="showcase-preview-box bg-dark-3">
+                        <span class="preview-text-tiktok">wait until the very end...</span>
+                    </div>
+                    <div class="showcase-card-body">
+                        <div class="showcase-card-meta">
+                            <h4>TikTok &amp; Reels Clean</h4>
+                            <span class="font-tag">Montserrat 800</span>
+                        </div>
+                        <p>Centered, clean modern text with subtle contrast shadow designed for quick narrative storytelling.</p>
+                        <button type="button" class="btn-use-preset" data-apply-preset="tiktok_auto">Apply This Preset</button>
+                    </div>
+                </div>
+
+                <!-- Preset 4: Ali Abdaal -->
+                <div class="showcase-card">
+                    <div class="showcase-preview-box bg-dark-1">
+                        <span class="preview-text-abdaal">How to build a second brain</span>
+                    </div>
+                    <div class="showcase-card-body">
+                        <div class="showcase-card-meta">
+                            <h4>Ali Abdaal Minimal</h4>
+                            <span class="font-tag">Inter 600</span>
+                        </div>
+                        <p>Minimalist backdrop capsule with crisp white typography for educational and productivity content.</p>
+                        <button type="button" class="btn-use-preset" data-apply-preset="ali_abdaal">Apply This Preset</button>
+                    </div>
+                </div>
+
+                <!-- Preset 5: Cinematic -->
+                <div class="showcase-card">
+                    <div class="showcase-preview-box bg-dark-2">
+                        <span class="preview-text-cinematic">THE WHISPER OF THE OCEAN</span>
+                    </div>
+                    <div class="showcase-card-body">
+                        <div class="showcase-card-meta">
+                            <h4>Cinematic 2.35:1</h4>
+                            <span class="font-tag">Playfair Display</span>
+                        </div>
+                        <p>Classic film serif typography with expanded tracking and subtle warmth for storytelling projects.</p>
+                        <button type="button" class="btn-use-preset" data-apply-preset="cinematic">Apply This Preset</button>
+                    </div>
+                </div>
+
+                <!-- Preset 6: Cyberpunk Neon -->
+                <div class="showcase-card">
+                    <div class="showcase-preview-box bg-dark-3">
+                        <span class="preview-text-neon">SYSTEM INITIALIZED // 2049</span>
+                    </div>
+                    <div class="showcase-card-body">
+                        <div class="showcase-card-meta">
+                            <h4>Cyberpunk Glow</h4>
+                            <span class="font-tag">Bebas Neue</span>
+                        </div>
+                        <p>Electric cyan typography with deep neon glow tuned for gaming highlights, tech reels, and esports.</p>
+                        <button type="button" class="btn-use-preset" data-apply-preset="neon">Apply This Preset</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================
+             4. FEATURES & ARCHITECTURE
+             ======================================================== -->
+        <section class="section-container" id="features">
+            <div class="section-header-center">
+                <span class="section-tag">Engineering Highlights</span>
+                <h2 class="section-title">Built for Performance &amp; Compatibility</h2>
+                <p class="section-desc">Why Captioniq exports outshine conventional screen-record and cloud burners.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                    </div>
+                    <h3>Deterministic 60 FPS Engine</h3>
+                    <p>Conventional tools record canvas streams at 1x real-time, dropping frames on high-load passes. Captioniq seeks exact frame timestamps mathematically, encoding every single frame with zero drops.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <h3>Native WhatsApp Compatibility</h3>
+                    <p>Streaming canvas recorders produce Fragmented MP4 files (moof chunks) that WhatsApp rejects as corrupted. Captioniq muxes strict FastStart ISO MP4 containers with front-loaded moov headers for immediate playback.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    </div>
+                    <h3>Automatic Speech-to-Text</h3>
+                    <p>Generate timestamped subtitle cues straight from audio speech. Choose between 100% private in-browser WebAssembly models or lightning-fast cloud Whisper transcription with instant language detection.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <h3>Hindi &amp; Roman Hindish Script</h3>
+                    <p>Native transliteration support for South Asian creators. Switch seamlessly between authentic Devanagari Hindi script and modern Roman Hindish letters (English phonetic spelling) with a single click.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <h3>1:1 Viewport Alignment Matching</h3>
+                    <p>Subtitles rendered on canvas use proportional scale factors referenced against the preview monitor. 50% vertical and 50% horizontal positioning lands dead-center on export, matching your editor view exactly.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <h3>100% Client-Side Privacy</h3>
+                    <p>Your video never leaves your browser memory. No cloud rendering queue, no file size limits, no watermark branding, and no personal account registration required.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================
+             5. WORKFLOW (HOW IT WORKS)
+             ======================================================== -->
+        <section class="section-container" id="workflow">
+            <div class="section-header-center">
+                <span class="section-tag">Simplified Workflow</span>
+                <h2 class="section-title">From Raw Footage to Polished Video in 3 Steps</h2>
+                <p class="section-desc">Fast, frictionless captioning without complex timeline software.</p>
+            </div>
+
+            <div class="workflow-steps-grid">
+                <div class="step-card">
+                    <div class="step-badge">STEP 01</div>
+                    <h3>Import Video &amp; Subtitles</h3>
+                    <p>Drag and drop your video file (MP4, WebM, MOV) and existing subtitle file (SRT, VTT, ASS), or click Auto-Transcribe to generate cues from speech automatically.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-badge">STEP 02</div>
+                    <h3>Select Style &amp; Customization</h3>
+                    <p>Choose a trending preset like Hormozi, MrBeast, or TikTok, or fine-tune font family, font size, stroke outline, shadow, text case, and vertical placement in real time.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-badge">STEP 03</div>
+                    <h3>Export WhatsApp-Ready MP4</h3>
+                    <p>Select your target resolution (720p, 1080p, or 4K) and 60 FPS framerate. Click Export to render a hardware-accelerated FastStart MP4 that plays everywhere.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================
+             6. TECHNICAL COMPARISON TABLE
+             ======================================================== -->
+        <section class="section-container" id="specs">
+            <div class="section-header-center">
+                <span class="section-tag">Technical Specs</span>
+                <h2 class="section-title">Architecture Comparison</h2>
+                <p class="section-desc">See how Captioniq eliminates common video export errors and dropped frames.</p>
+            </div>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Capability / Architecture</th>
+                            <th class="highlight-col">Captioniq Studio (This App)</th>
+                            <th>Conventional Web Tools</th>
+                            <th>Browser Screen Recorders</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>WhatsApp Playback</strong></td>
+                            <td class="highlight-col text-green">100% Native (FastStart ISO MP4)</td>
+                            <td class="text-amber">Often requires cloud conversion</td>
+                            <td class="text-red">Error: "Unusual Format / Corrupted"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Frame Rendering Rate</strong></td>
+                            <td class="highlight-col text-green">Deterministic 60 FPS (0 dropped frames)</td>
+                            <td class="text-amber">Variable (Cloud server dependent)</td>
+                            <td class="text-red">Choppy &amp; lagging on 1080p canvas</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Privacy &amp; Data Security</strong></td>
+                            <td class="highlight-col text-green">100% On-Device (Zero cloud uploads)</td>
+                            <td class="text-red">Video uploaded to external cloud</td>
+                            <td class="text-green">Local capture</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hindi &amp; Roman Hindish</strong></td>
+                            <td class="highlight-col text-green">Both Devanagari &amp; Roman English</td>
+                            <td class="text-red">Devanagari only or unmapped</td>
+                            <td class="text-red">Manual typing only</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Max Resolution Support</strong></td>
+                            <td class="highlight-col text-green">Up to 4K Ultra HD @ 60 FPS</td>
+                            <td class="text-red">Locked behind paid paywalls</td>
+                            <td class="text-amber">Screen resolution limited</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Watermarks &amp; Ads</strong></td>
+                            <td class="highlight-col text-green">Zero Watermarks (Completely Free)</td>
+                            <td class="text-red">Forced branding on free tiers</td>
+                            <td class="text-green">No watermark</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- ========================================================
+             7. FAQ SECTION
+             ======================================================== -->
+        <section class="section-container" id="faq">
+            <div class="section-header-center">
+                <span class="section-tag">Frequently Asked Questions</span>
+                <h2 class="section-title">Everything You Need to Know</h2>
+                <p class="section-desc">Clear answers to technical details, file formats, and device compatibility.</p>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Why did my previous exported video show an "unusual format or corrupted" error on WhatsApp?</span>
+                        <svg class="faq-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Most browser-based export tools use native MediaRecorder, which outputs fragmented streaming MP4 files (moof chunks) without a top-level moov duration header. WhatsApp's security scanner flags these fragmented streams as potentially corrupted. Captioniq muxes clean, standard FastStart ISO MP4 containers with the moov atom placed directly at the front of the file, allowing instant, native playback on WhatsApp, iOS, Android, and QuickTime.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Why does the video export smoothly with zero dropped frames?</span>
+                        <svg class="faq-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Unlike real-time screen capture tools that record while the video plays (dropping frames whenever CPU or GPU load spikes), Captioniq utilizes hardware-accelerated WebCodecs. It pauses playback, deterministically seeks to exact frame mathematical timestamps (frameIndex / fps), draws the subtitle overlay onto canvas, and feeds the exact raw VideoFrame into the hardware encoder. The resulting video has a rock-solid, constant frame rate at 30 or 60 FPS.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What is the difference between Hindi and Hindish (Roman English)?</span>
+                        <svg class="faq-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Hindi (Devanagari) uses the traditional Indian script (e.g., "आप कैसे हैं"), while Hindish (also known as Hinglish or Roman Hindi) writes spoken Hindi words using English Latin letters (e.g., "Aap kaise hain"). Captioniq includes a native transliteration toggle so creators can target social media audiences who prefer reading casual Roman English captions.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Are my video files uploaded to your servers?</span>
+                        <svg class="faq-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>No. Captioniq runs 100% client-side in your web browser. Video decoding, subtitle overlay rendering, audio multiplexing, and MP4 muxing all occur directly inside your device's memory. Your footage is never uploaded, stored, or viewed by anyone else.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I download the generated .SRT subtitle file separately?</span>
+                        <svg class="faq-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. When you use the Auto-Transcribe feature, Captioniq provides a "Download .SRT" chip right above the preview video, allowing you to save the generated subtitle file to your computer for use in Premiere, Final Cut, CapCut, or YouTube Studio.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Studio Footer & Trust Indicators -->
+    <footer class="app-footer">
+        <div class="footer-left">
+            <div class="footer-brand">
+                <span class="logo-text">Caption<span class="logo-accent">iq</span></span>
+                <span class="footer-badge-clean">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    100% Client-Side Private
+                </span>
+            </div>
+            <p class="footer-copy-text">Zero video data leaves your browser. FastStart ISO MP4 export engine.</p>
+        </div>
+        <div class="footer-links">
+            <a href="#hero" class="footer-link">Back to Top</a>
+            <a href="#features" class="footer-link">Features</a>
+            <a href="#presetsShowcase" class="footer-link">Presets</a>
+            <button type="button" class="footer-link" id="openPrivacyBtn">Privacy Policy</button>
+            <button type="button" class="footer-link" id="openTermsBtn">Terms of Service</button>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- AI Auto-Subtitle Modal -->
+    <div class="modal-backdrop hidden" id="autoSubModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title">Auto-Detect Language &amp; Subtitle</h3>
+                        <p class="modal-subtitle">Transcribe speech and generate synced subtitles directly from video</p>
+                    </div>
+                </div>
+                <button class="modal-close" id="closeAutoSubModalBtn" aria-label="Close modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Engine Selection Tabs -->
+                <div class="engine-tabs">
+                    <button type="button" class="engine-tab active" data-engine="local">
+                        <span class="tab-title">In-Browser Speech Engine</span>
+                        <span class="tab-tag free">100% Free · Private</span>
+                    </button>
+                    <button type="button" class="engine-tab" data-engine="cloud">
+                        <span class="tab-title">Cloud Whisper API (Groq / OpenAI)</span>
+                        <span class="tab-tag fast">Ultra-Fast (1-2s)</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: In-Browser AI Info -->
+                <div class="tab-content" id="tabContentLocal">
+                    <div class="info-banner">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 5v3M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        <span>Runs client-side via WebAssembly. Zero data leaves your computer. Automatically detects spoken language from 90+ languages.</span>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Fast Cloud Settings -->
+                <div class="tab-content hidden" id="tabContentCloud">
+                    <div class="info-banner">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3 10a4 4 0 017.5-2A3.5 3.5 0 0114 11H3z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span>Transcribes full audio in ~1 to 2 seconds using cloud Whisper Large V3. Your API key stays in your browser's local storage.</span>
+                    </div>
+                    <div class="control-group modal-field">
+                        <label class="control-label">API Provider</label>
+                        <select id="cloudProvider" class="control-select">
+                            <option value="groq" selected>Groq Whisper Large V3 (Free &amp; Ultra-Fast)</option>
+                            <option value="openai">OpenAI Whisper-1</option>
+                        </select>
+                    </div>
+                    <div class="control-group modal-field">
+                        <label class="control-label">API Key <span class="val-badge" id="apiKeyStatus">Saved locally</span></label>
+                        <input type="password" id="cloudApiKey" class="control-input" placeholder="Enter gsk_... or sk-...">
+                        <span class="field-hint">Tip: Groq offers free Whisper keys at console.groq.com without credit card.</span>
+                    </div>
+                </div>
+
+                <!-- Shared Settings -->
+                <div class="modal-settings-grid">
+                    <div class="control-group">
+                        <label class="control-label">Spoken Language</label>
+                        <select id="transcribeLanguage" class="control-select">
+                            <option value="auto" selected>Auto-Detect Spoken Language</option>
+                            <option value="hindish">Hindish / Hinglish (Roman English)</option>
+                            <option value="hi">Hindi (हिन्दी - Devanagari)</option>
+                            <option value="en">English</option>
+                            <option value="ur">Urdu (اردو)</option>
+                            <option value="ur-roman">Roman Urdu</option>
+                            <option value="es">Spanish (Español)</option>
+                            <option value="fr">French (Français)</option>
+                            <option value="de">German (Deutsch)</option>
+                            <option value="ar">Arabic (العربية)</option>
+                            <option value="zh">Chinese (中文)</option>
+                            <option value="ja">Japanese (日本語)</option>
+                            <option value="ko">Korean (한국어)</option>
+                            <option value="pt">Portuguese (Português)</option>
+                            <option value="ru">Russian (Русский)</option>
+                            <option value="it">Italian (Italiano)</option>
+                            <option value="tr">Turkish (Türkçe)</option>
+                            <option value="id">Indonesian (Bahasa)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Caption Pacing</label>
+                        <select id="captionPacing" class="control-select">
+                            <option value="standard" selected>Standard (3–6 words, readable)</option>
+                            <option value="shorts">Viral / Shorts (1–3 words, punchy)</option>
+                            <option value="sentence">Full Sentences</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Hindi & Hindish Choice Selector -->
+                <div class="control-group hindi-choice-box" id="hindiChoiceBox">
+                    <div class="choice-header">
+                        <label class="control-label">
+                            <span>Hindi &amp; Hindish Script Choice</span>
+                        </label>
+                        <span class="val-badge" id="hindiChoiceBadge">Hindish (Roman English)</span>
+                    </div>
+                    <div class="script-choice-cards">
+                        <button type="button" class="script-card active" data-script="hindish" id="scriptCardHindish">
+                            <div class="script-card-header">
+                                <span class="script-card-icon" style="font-weight:700;font-size:0.85rem">Aa</span>
+                                <strong class="script-card-title">Hindish (Roman English)</strong>
+                            </div>
+                            <p class="script-desc">Spoken Hindi written in English letters (e.g. <em>"Aap kaise hain"</em>)</p>
+                        </button>
+                        <button type="button" class="script-card" data-script="devanagari" id="scriptCardDevanagari">
+                            <div class="script-card-header">
+                                <span class="script-card-icon" style="font-weight:700;font-size:0.85rem">हि</span>
+                                <strong class="script-card-title">Hindi (Devanagari)</strong>
+                            </div>
+                            <p class="script-desc">Traditional Devanagari script (e.g. <em>"आप कैसे हैं"</em>)</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Progress Section -->
+                <div class="ai-progress-section hidden" id="aiProgressSection">
+                    <div class="ai-progress-header">
+                        <span class="ai-status-text" id="aiStatusText">Extracting audio from video…</span>
+                        <span class="ai-progress-pct" id="aiProgressPct">0%</span>
+                    </div>
+                    <div class="ai-progress-track">
+                        <div class="ai-progress-bar" id="aiProgressBar"></div>
+                    </div>
+                    <div class="ai-steps">
+                        <div class="ai-step-item" id="stepAudio"><span class="step-dot"></span> Extract Audio</div>
+                        <div class="ai-step-item" id="stepModel"><span class="step-dot"></span> Load Engine</div>
+                        <div class="ai-step-item" id="stepTranscribe"><span class="step-dot"></span> Detect &amp; Transcribe</div>
+                    </div>
+                </div>
+
+                <!-- Result Banner -->
+                <div class="ai-result-banner hidden" id="aiResultBanner">
+                    <div class="result-badge">
+                        <span class="result-icon" id="resIcon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        </span>
+                        <div class="result-details">
+                            <strong id="resLanguage">Detected: English</strong>
+                            <span id="resMeta">24 subtitle cues generated with timestamps</span>
+                        </div>
+                    </div>
+                    <div class="result-script-switch hidden" id="resScriptSwitch">
+                        <span class="switch-title">Script Choice:</span>
+                        <div class="switch-btn-group">
+                            <button type="button" class="mini-choice-btn active" id="resChoiceHindish">Hindish (Roman English)</button>
+                            <button type="button" class="mini-choice-btn" id="resChoiceHindi">हिन्दी (Devanagari)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelAutoSubBtn">Cancel</button>
+                <button type="button" class="btn-primary ai-action-btn" id="startTranscribeBtn">
+                    Start Auto-Transcription
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legal Policy Modal -->
+    <div class="modal-backdrop hidden" id="legalModal">
+        <div class="modal-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 class="modal-title" id="legalModalTitle">Privacy Policy</h3>
+                </div>
+                <button class="modal-close" id="closeLegalModalBtn" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="legal-modal-body" id="legalModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="dismissLegalBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="mp4-muxer.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

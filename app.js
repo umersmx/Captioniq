@@ -1,0 +1,2144 @@
+/* ===================================================================
+   Captioniq - Subtitle Applier  ·  Application Logic
+   =================================================================== */
+
+(function () {
+    'use strict';
+
+    // ── DOM References ──────────────────────────────────────────────
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const uploadSection   = $('#uploadSection');
+    const editorSection   = $('#editorSection');
+
+    const videoDropzone   = $('#videoDropzone');
+    const subtitleDropzone= $('#subtitleDropzone');
+    const videoInput      = $('#videoInput');
+    const subtitleInput   = $('#subtitleInput');
+    const videoUploadCard = $('#videoUploadCard');
+    const subtitleUploadCard = $('#subtitleUploadCard');
+    const videoStatus     = $('#videoStatus');
+    const subtitleStatus  = $('#subtitleStatus');
+
+    const videoContainer  = $('#videoContainer');
+    const videoPlayer     = $('#videoPlayer');
+    const subtitleOverlay = $('#subtitleOverlay');
+    const playPauseBtn    = $('#playPauseBtn');
+    const muteBtn         = $('#muteBtn');
+    const progressBar     = $('#progressBar');
+    const progressFill    = $('#progressFill');
+    const progressHandle  = $('#progressHandle');
+    const timeDisplay     = $('#timeDisplay');
+
+    const changeVideoBtn  = $('#changeVideoBtn');
+    const changeSubBtn    = $('#changeSubBtn');
+    const autoSubEditorBtn= $('#autoSubEditorBtn');
+    const downloadSubBtn  = $('#downloadSubBtn');
+    const detectedLangChip= $('#detectedLangChip');
+    const detectedLangLabel= $('#detectedLangLabel');
+    const toggleScriptBtn = $('#toggleScriptBtn');
+    const toggleScriptLabel = $('#toggleScriptLabel');
+    const triggerAutoSubUploadBtn = $('#triggerAutoSubUploadBtn');
+
+    // Modal elements
+    const autoSubModal       = $('#autoSubModal');
+    const closeAutoSubModalBtn = $('#closeAutoSubModalBtn');
+    const cancelAutoSubBtn   = $('#cancelAutoSubBtn');
+    const startTranscribeBtn = $('#startTranscribeBtn');
+    const engineTabs         = $$('.engine-tab');
+    const tabContentLocal    = $('#tabContentLocal');
+    const tabContentCloud    = $('#tabContentCloud');
+    const cloudProvider      = $('#cloudProvider');
+    const cloudApiKey        = $('#cloudApiKey');
+    const apiKeyStatus       = $('#apiKeyStatus');
+    const transcribeLanguage = $('#transcribeLanguage');
+    const captionPacing      = $('#captionPacing');
+
+    const hindiChoiceBox     = $('#hindiChoiceBox');
+    const hindiChoiceBadge   = $('#hindiChoiceBadge');
+    const scriptCardHindish  = $('#scriptCardHindish');
+    const scriptCardDevanagari = $('#scriptCardDevanagari');
+
+    const aiProgressSection  = $('#aiProgressSection');
+    const aiStatusText       = $('#aiStatusText');
+    const aiProgressPct      = $('#aiProgressPct');
+    const aiProgressBar      = $('#aiProgressBar');
+    const stepAudio          = $('#stepAudio');
+    const stepModel          = $('#stepModel');
+    const stepTranscribe     = $('#stepTranscribe');
+    const aiResultBanner     = $('#aiResultBanner');
+    const resIcon            = $('#resIcon');
+    const resLanguage        = $('#resLanguage');
+    const resMeta            = $('#resMeta');
+    const resScriptSwitch    = $('#resScriptSwitch');
+    const resChoiceHindish   = $('#resChoiceHindish');
+    const resChoiceHindi     = $('#resChoiceHindi');
+
+    const resetStylesBtn   = $('#resetStylesBtn');
+    const exportBtn        = $('#exportBtn');
+    const exportResolution = $('#exportResolution');
+    const exportFps        = $('#exportFps');
+    const exportProgress   = $('#exportProgress');
+    const exportBarFill    = $('#exportBarFill');
+    const exportLabel      = $('#exportLabel');
+    const toastContainer   = $('#toastContainer');
+
+    // ── State ───────────────────────────────────────────────────────
+    let videoFile = null;
+    let subtitles = [];       // [{start, end, text, textDevanagari, textHindish}]
+    let videoURL  = null;
+    let currentEngine = 'local';
+    let detectedLanguage = null;
+    let localTranscriber = null;
+    let isTranscribing = false;
+    let hindiScriptChoice = 'hindish'; // 'hindish' | 'devanagari'
+    let activeScript = 'hindish';
+
+    const defaultStyle = {
+        fontFamily: 'Inter',
+        fontSize: 28,
+        fontWeight: '600',
+        textColor: '#ffffff',
+        bgColor: '#000000',
+        bgOpacity: 70,
+        outlineWidth: 2,
+        outlineColor: '#000000',
+        shadowBlur: 3,
+        letterSpacing: 0,
+        lineHeight: 1.4,
+        textTransform: 'none',
+        position: 50,
+        textAlign: 'center',
+        hOffset: 50,
+        paddingV: 8,
+        paddingH: 16,
+        borderRadius: 6,
+    };
+
+    let style = { ...defaultStyle };
+
+    // ── Presets ──────────────────────────────────────────────────────
+    const presets = {
+        classic: {
+            fontFamily: 'Arial', fontSize: 28, fontWeight: '700',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 75,
+            outlineWidth: 2, outlineColor: '#000000', shadowBlur: 2,
+            letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+            position: 90, textAlign: 'center', hOffset: 50, paddingV: 6, paddingH: 14, borderRadius: 4,
+        },
+        netflix: {
+            fontFamily: 'Inter', fontSize: 32, fontWeight: '700',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 6,
+            letterSpacing: 1, lineHeight: 1.3, textTransform: 'none',
+            position: 88, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        youtube: {
+            fontFamily: 'Roboto', fontSize: 26, fontWeight: '500',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 80,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 0,
+            letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+            position: 90, textAlign: 'center', hOffset: 50, paddingV: 4, paddingH: 10, borderRadius: 4,
+        },
+        cinematic: {
+            fontFamily: 'Playfair Display', fontSize: 30, fontWeight: '600',
+            textColor: '#f5e6d3', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 1, outlineColor: '#1a1a1a', shadowBlur: 8,
+            letterSpacing: 2, lineHeight: 1.5, textTransform: 'none',
+            position: 88, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        karaoke: {
+            fontFamily: 'Montserrat', fontSize: 34, fontWeight: '800',
+            textColor: '#facc15', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 3, outlineColor: '#000000', shadowBlur: 4,
+            letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase',
+            position: 85, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        minimal: {
+            fontFamily: 'Inter', fontSize: 22, fontWeight: '400',
+            textColor: '#e0e0e0', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 0,
+            letterSpacing: 0, lineHeight: 1.5, textTransform: 'none',
+            position: 92, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        retro: {
+            fontFamily: 'Courier New', fontSize: 24, fontWeight: '700',
+            textColor: '#4ade80', bgColor: '#000000', bgOpacity: 90,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 8,
+            letterSpacing: 2, lineHeight: 1.4, textTransform: 'uppercase',
+            position: 88, textAlign: 'center', hOffset: 50, paddingV: 8, paddingH: 16, borderRadius: 0,
+        },
+        neon: {
+            fontFamily: 'Bebas Neue', fontSize: 38, fontWeight: '400',
+            textColor: '#f472b6', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 18,
+            letterSpacing: 4, lineHeight: 1.2, textTransform: 'uppercase',
+            position: 85, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+
+        // ── Trending TikTok / Instagram / Shorts Presets ──
+        hormozi: {
+            fontFamily: 'Montserrat', fontSize: 40, fontWeight: '900',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 85,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 0,
+            letterSpacing: 1, lineHeight: 1.2, textTransform: 'uppercase',
+            position: 45, textAlign: 'center', hOffset: 50, paddingV: 10, paddingH: 20, borderRadius: 6,
+        },
+        mrbeast: {
+            fontFamily: 'Montserrat', fontSize: 44, fontWeight: '800',
+            textColor: '#facc15', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 5, outlineColor: '#000000', shadowBlur: 6,
+            letterSpacing: 0, lineHeight: 1.15, textTransform: 'uppercase',
+            position: 50, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        tiktok_auto: {
+            fontFamily: 'Inter', fontSize: 30, fontWeight: '700',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 3, outlineColor: '#000000', shadowBlur: 0,
+            letterSpacing: 0, lineHeight: 1.3, textTransform: 'none',
+            position: 50, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        ig_reels: {
+            fontFamily: 'Poppins', fontSize: 28, fontWeight: '600',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 60,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 4,
+            letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+            position: 80, textAlign: 'center', hOffset: 50, paddingV: 8, paddingH: 18, borderRadius: 20,
+        },
+        ali_abdaal: {
+            fontFamily: 'Inter', fontSize: 26, fontWeight: '500',
+            textColor: '#f0f0f0', bgColor: '#1a1a2e', bgOpacity: 75,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 0,
+            letterSpacing: 0, lineHeight: 1.5, textTransform: 'none',
+            position: 88, textAlign: 'center', hOffset: 50, paddingV: 10, paddingH: 20, borderRadius: 12,
+        },
+        iman_gadzhi: {
+            fontFamily: 'Oswald', fontSize: 38, fontWeight: '700',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 4, outlineColor: '#000000', shadowBlur: 8,
+            letterSpacing: 2, lineHeight: 1.2, textTransform: 'uppercase',
+            position: 50, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        viral_pop: {
+            fontFamily: 'Poppins', fontSize: 36, fontWeight: '800',
+            textColor: '#00f5d4', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 3, outlineColor: '#7b2ff7', shadowBlur: 12,
+            letterSpacing: 1, lineHeight: 1.2, textTransform: 'uppercase',
+            position: 50, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        podcast_clip: {
+            fontFamily: 'Roboto', fontSize: 32, fontWeight: '700',
+            textColor: '#ffffff', bgColor: '#e63946', bgOpacity: 90,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 0,
+            letterSpacing: 0, lineHeight: 1.3, textTransform: 'none',
+            position: 75, textAlign: 'center', hOffset: 50, paddingV: 10, paddingH: 22, borderRadius: 8,
+        },
+        shorts_bold: {
+            fontFamily: 'Oswald', fontSize: 42, fontWeight: '700',
+            textColor: '#ffffff', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 4, outlineColor: '#000000', shadowBlur: 10,
+            letterSpacing: 1, lineHeight: 1.15, textTransform: 'uppercase',
+            position: 48, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+        aesthetic: {
+            fontFamily: 'Playfair Display', fontSize: 26, fontWeight: '400',
+            textColor: '#fdf6e3', bgColor: '#000000', bgOpacity: 0,
+            outlineWidth: 0, outlineColor: '#000000', shadowBlur: 5,
+            letterSpacing: 3, lineHeight: 1.6, textTransform: 'none',
+            position: 85, textAlign: 'center', hOffset: 50, paddingV: 0, paddingH: 0, borderRadius: 0,
+        },
+    };
+
+    // ── Helpers ──────────────────────────────────────────────────────
+    function toast(message, type = 'info') {
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.textContent = message;
+        toastContainer.appendChild(el);
+        setTimeout(() => {
+            el.classList.add('removing');
+            setTimeout(() => el.remove(), 350);
+        }, 3500);
+    }
+
+    function formatTime(sec) {
+        if (!sec || isNaN(sec)) return '0:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function hexToRgb(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return { r, g, b };
+    }
+
+    // ── Subtitle Parsers ────────────────────────────────────────────
+    function parseSRT(text) {
+        const subs = [];
+        const blocks = text.trim().replace(/\r\n/g, '\n').split(/\n\n+/);
+        for (const block of blocks) {
+            const lines = block.split('\n');
+            let timeLineIdx = lines.findIndex(l => l.includes('-->'));
+            if (timeLineIdx === -1) continue;
+            const timeParts = lines[timeLineIdx].split('-->');
+            const start = srtTimeToSec(timeParts[0].trim());
+            const end   = srtTimeToSec(timeParts[1].trim());
+            const textLines = lines.slice(timeLineIdx + 1).join('\n').replace(/<[^>]+>/g, '').trim();
+            if (textLines) subs.push({ start, end, text: textLines });
+        }
+        return subs;
+    }
+
+    function srtTimeToSec(ts) {
+        // 00:01:23,456 or 00:01:23.456
+        const parts = ts.replace(',', '.').split(':');
+        if (parts.length === 3) {
+            return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+        }
+        return 0;
+    }
+
+    function parseVTT(text) {
+        // Strip VTT header
+        const cleaned = text.replace(/^WEBVTT.*?\n\n/s, '');
+        return parseSRT(cleaned);
+    }
+
+    function parseASS(text) {
+        const subs = [];
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (!line.startsWith('Dialogue:')) continue;
+            const parts = line.substring(9).split(',');
+            if (parts.length < 10) continue;
+            const start = assTimeToSec(parts[1].trim());
+            const end   = assTimeToSec(parts[2].trim());
+            // Text is everything after the 9th comma
+            let subText = parts.slice(9).join(',').replace(/\{[^}]*\}/g, '').replace(/\\N/g, '\n').trim();
+            if (subText) subs.push({ start, end, text: subText });
+        }
+        return subs;
+    }
+
+    function assTimeToSec(ts) {
+        // 0:00:12.34
+        const parts = ts.split(':');
+        if (parts.length === 3) {
+            return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+        }
+        return 0;
+    }
+
+    function parseSubtitles(text, filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        if (ext === 'vtt') return parseVTT(text);
+        if (ext === 'ass' || ext === 'ssa') return parseASS(text);
+        // default SRT
+        return parseSRT(text);
+    }
+
+    // ── Drag & Drop Setup ───────────────────────────────────────────
+    function setupDropzone(dropzone, inputEl, handler) {
+        dropzone.addEventListener('click', () => inputEl.click());
+        inputEl.addEventListener('change', (e) => {
+            if (e.target.files[0]) handler(e.target.files[0]);
+        });
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('drag-over');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('drag-over');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]);
+        });
+    }
+
+    function handleVideoFile(file) {
+        if (!file.type.startsWith('video/') && !file.name.match(/\.(mp4|webm|mov|mkv|avi|m4v)$/i)) {
+            toast('Please select a valid video file', 'error');
+            return;
+        }
+        videoFile = file;
+        if (videoURL) URL.revokeObjectURL(videoURL);
+        videoURL = URL.createObjectURL(file);
+        videoPlayer.src = videoURL;
+        videoPlayer.onloadedmetadata = () => {
+            updateVideoAspectRatio();
+        };
+        videoUploadCard.classList.add('has-file');
+        videoStatus.textContent = `✓ ${file.name} (${(file.size / 1048576).toFixed(1)} MB)`;
+        toast(`Video loaded: ${file.name}`, 'success');
+        checkReady();
+    }
+
+    function updateVideoAspectRatio() {
+        if (!videoContainer || !videoPlayer) return;
+        const w = videoPlayer.videoWidth;
+        const h = videoPlayer.videoHeight;
+        if (w && h) {
+            const aspect = w / h;
+            videoContainer.style.aspectRatio = `${w} / ${h}`;
+            videoContainer.style.width = `min(100%, calc(70vh * ${aspect}))`;
+            videoContainer.style.height = 'auto';
+        }
+    }
+
+    function handleSubtitleFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            subtitles = parseSubtitles(e.target.result, file.name);
+            if (subtitles.length === 0) {
+                toast('No valid subtitles found in file', 'error');
+                return;
+            }
+            subtitleUploadCard.classList.add('has-file');
+            subtitleStatus.textContent = `✓ ${file.name} - ${subtitles.length} cues`;
+            toast(`Subtitles loaded: ${subtitles.length} cues`, 'success');
+            checkReady();
+        };
+        reader.readAsText(file);
+    }
+
+    function checkReady() {
+        if (videoFile && subtitles.length > 0) {
+            uploadSection.classList.add('hidden');
+            editorSection.classList.remove('hidden');
+            if (downloadSubBtn) downloadSubBtn.classList.remove('hidden');
+            if (detectedLanguage && detectedLangChip) {
+                detectedLangChip.classList.remove('hidden');
+            }
+            updateVideoAspectRatio();
+            updateScriptToggleChip();
+            renderSubtitle();
+        }
+    }
+
+    setupDropzone(videoDropzone, videoInput, handleVideoFile);
+    setupDropzone(subtitleDropzone, subtitleInput, handleSubtitleFile);
+
+    // Change file buttons
+    changeVideoBtn.addEventListener('click', () => videoInput.click());
+    changeSubBtn.addEventListener('click', () => subtitleInput.click());
+
+    // ── Video Controls ──────────────────────────────────────────────
+    playPauseBtn.addEventListener('click', () => {
+        if (videoPlayer.paused) {
+            videoPlayer.play();
+        } else {
+            videoPlayer.pause();
+        }
+    });
+
+    videoPlayer.addEventListener('play', () => {
+        playPauseBtn.querySelector('.icon-play').classList.add('hidden');
+        playPauseBtn.querySelector('.icon-pause').classList.remove('hidden');
+    });
+    videoPlayer.addEventListener('pause', () => {
+        playPauseBtn.querySelector('.icon-play').classList.remove('hidden');
+        playPauseBtn.querySelector('.icon-pause').classList.add('hidden');
+    });
+
+    muteBtn.addEventListener('click', () => {
+        videoPlayer.muted = !videoPlayer.muted;
+        muteBtn.style.opacity = videoPlayer.muted ? '0.4' : '1';
+    });
+
+    videoPlayer.addEventListener('timeupdate', () => {
+        if (!videoPlayer.duration) return;
+        const pct = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+        progressFill.style.width = pct + '%';
+        progressHandle.style.left = pct + '%';
+        timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
+        renderSubtitle();
+    });
+
+    // Progress bar seeking
+    let isSeeking = false;
+    function seekFromEvent(e) {
+        const rect = progressBar.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        videoPlayer.currentTime = pct * videoPlayer.duration;
+    }
+    progressBar.addEventListener('mousedown', (e) => { isSeeking = true; seekFromEvent(e); });
+    document.addEventListener('mousemove', (e) => { if (isSeeking) seekFromEvent(e); });
+    document.addEventListener('mouseup', () => { isSeeking = false; });
+
+    // ── Subtitle Rendering ──────────────────────────────────────────
+    function renderSubtitle() {
+        const time = videoPlayer.currentTime;
+        let activeSub = subtitles.find(s => time >= s.start && time <= s.end);
+        // If paused and no cue at exact current time, show closest cue for real-time styling feedback
+        if (!activeSub && videoPlayer.paused && subtitles.length > 0) {
+            activeSub = subtitles.find(s => Math.abs(s.start - time) < 4) || subtitles[0];
+        }
+
+        if (activeSub) {
+            let text = activeSub.text;
+            if (style.textTransform === 'uppercase') text = text.toUpperCase();
+            else if (style.textTransform === 'lowercase') text = text.toLowerCase();
+            else if (style.textTransform === 'capitalize') text = text.replace(/\b\w/g, c => c.toUpperCase());
+
+            const bgRgb = hexToRgb(style.bgColor);
+            const bgAlpha = style.bgOpacity / 100;
+
+            let textShadow = 'none';
+            const shadows = [];
+            if (style.outlineWidth > 0) {
+                const ow = style.outlineWidth;
+                const oc = style.outlineColor;
+                // 8-directional outline
+                shadows.push(`${ow}px 0 0 ${oc}`, `-${ow}px 0 0 ${oc}`);
+                shadows.push(`0 ${ow}px 0 ${oc}`, `0 -${ow}px 0 ${oc}`);
+                shadows.push(`${ow}px ${ow}px 0 ${oc}`, `-${ow}px -${ow}px 0 ${oc}`);
+                shadows.push(`${ow}px -${ow}px 0 ${oc}`, `-${ow}px ${ow}px 0 ${oc}`);
+            }
+            if (style.shadowBlur > 0) {
+                shadows.push(`0 0 ${style.shadowBlur}px rgba(0,0,0,0.8)`);
+                shadows.push(`0 2px ${style.shadowBlur * 2}px rgba(0,0,0,0.5)`);
+            }
+            if (shadows.length) textShadow = shadows.join(', ');
+
+            subtitleOverlay.innerHTML = `<div class="sub-box"><span class="sub-text">${escapeHtml(text)}</span></div>`;
+            const subBox = subtitleOverlay.querySelector('.sub-box');
+            const span   = subBox.querySelector('.sub-text');
+
+            Object.assign(span.style, {
+                fontFamily: `'${style.fontFamily}', sans-serif`,
+                fontSize: style.fontSize + 'px',
+                fontWeight: style.fontWeight,
+                color: style.textColor,
+                backgroundColor: style.bgColor === 'transparent'
+                    ? 'transparent'
+                    : `rgba(${bgRgb.r},${bgRgb.g},${bgRgb.b},${bgAlpha})`,
+                textShadow: textShadow,
+                letterSpacing: style.letterSpacing + 'px',
+                lineHeight: style.lineHeight.toString(),
+                textAlign: style.textAlign,
+                padding: `${style.paddingV}px ${style.paddingH}px`,
+                borderRadius: style.borderRadius + 'px',
+            });
+
+            // Precise Vertical & Horizontal Positioning
+            const vPos = (typeof style.position === 'number' && !isNaN(style.position)) ? style.position : 50;
+            const hPos = (typeof style.hOffset === 'number' && !isNaN(style.hOffset)) ? style.hOffset : 50;
+
+            subBox.style.top = `${vPos}%`;
+            subBox.style.left = `${hPos}%`;
+            subBox.style.transform = 'translate(-50%, -50%)';
+        } else {
+            subtitleOverlay.innerHTML = '';
+        }
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+    }
+
+    // ── Style Controls Binding ──────────────────────────────────────
+    function bindControl(id, prop, transform, valId, valFormatter) {
+        const el = $(`#${id}`);
+        if (!el) return;
+        el.addEventListener('input', () => {
+            style[prop] = transform ? transform(el.value) : el.value;
+            if (valId) {
+                const badge = $(`#${valId}`);
+                if (badge) badge.textContent = valFormatter ? valFormatter(style[prop]) : style[prop];
+            }
+            renderSubtitle();
+        });
+    }
+
+    bindControl('fontFamily', 'fontFamily');
+    bindControl('fontSize', 'fontSize', Number, 'fontSizeVal', v => v + 'px');
+    bindControl('fontWeight', 'fontWeight');
+    bindControl('textColor', 'textColor');
+    bindControl('bgColor', 'bgColor');
+    bindControl('bgOpacity', 'bgOpacity', Number, 'bgOpacityVal', v => v + '%');
+    bindControl('outlineWidth', 'outlineWidth', Number, 'outlineVal', v => v + 'px');
+    bindControl('outlineColor', 'outlineColor');
+    bindControl('shadowBlur', 'shadowBlur', Number, 'shadowVal', v => v + 'px');
+    bindControl('letterSpacing', 'letterSpacing', Number, 'letterSpacingVal', v => v + 'px');
+    bindControl('lineHeight', 'lineHeight', v => Number(v) / 10, 'lineHeightVal', v => v.toFixed(1));
+    bindControl('textTransform', 'textTransform');
+    bindControl('subtitlePosition', 'position', Number, 'positionVal', v => v + '%');
+
+    // Horizontal Offset Slider with Alignment sync
+    const hOffsetInput = $('#hOffset');
+    if (hOffsetInput) {
+        hOffsetInput.addEventListener('input', () => {
+            const val = Number(hOffsetInput.value);
+            style.hOffset = val;
+            const badge = $('#hOffsetVal');
+            if (badge) badge.textContent = val + '%';
+
+            // Auto-sync alignment buttons
+            if (val <= 30) {
+                style.textAlign = 'left';
+            } else if (val >= 70) {
+                style.textAlign = 'right';
+            } else {
+                style.textAlign = 'center';
+            }
+            $$('#alignToggle .align-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.align === style.textAlign);
+            });
+            renderSubtitle();
+        });
+    }
+
+    bindControl('paddingV', 'paddingV', Number, 'paddingVal', () => `${style.paddingV}px ${style.paddingH}px`);
+    bindControl('paddingH', 'paddingH', Number, 'paddingVal', () => `${style.paddingV}px ${style.paddingH}px`);
+    bindControl('borderRadius', 'borderRadius', Number, 'borderRadiusVal', v => v + 'px');
+
+    // Alignment toggle buttons
+    $$('#alignToggle .align-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            $$('#alignToggle .align-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const align = btn.dataset.align;
+            style.textAlign = align;
+            if (align === 'left') {
+                style.hOffset = 20;
+            } else if (align === 'right') {
+                style.hOffset = 80;
+            } else {
+                style.hOffset = 50;
+            }
+            if (hOffsetInput) hOffsetInput.value = style.hOffset;
+            const hBadge = $('#hOffsetVal');
+            if (hBadge) hBadge.textContent = style.hOffset + '%';
+            renderSubtitle();
+        });
+    });
+
+    // Color swatch presets
+    $$('#textPresets .color-swatch').forEach(btn => {
+        btn.addEventListener('click', () => {
+            style.textColor = btn.dataset.color;
+            $('#textColor').value = btn.dataset.color;
+            renderSubtitle();
+        });
+    });
+    $$('#bgPresets .color-swatch').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const c = btn.dataset.color;
+            style.bgColor = c;
+            if (c !== 'transparent') $('#bgColor').value = c;
+            renderSubtitle();
+        });
+    });
+
+    // ── Style Presets ───────────────────────────────────────────────
+    $$('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const name = btn.dataset.preset;
+            if (!presets[name]) return;
+            applyStyle(presets[name]);
+            // Visual active state
+            $$('.preset-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            toast(`Applied "${name}" preset`, 'info');
+        });
+    });
+
+    function applyStyle(s) {
+        style = { ...s };
+        // Sync UI controls
+        $('#fontFamily').value = s.fontFamily;
+        $('#fontSize').value = s.fontSize;
+        $('#fontWeight').value = s.fontWeight;
+        $('#textColor').value = s.textColor;
+        $('#bgColor').value = s.bgColor === 'transparent' ? '#000000' : s.bgColor;
+        $('#bgOpacity').value = s.bgOpacity;
+        $('#outlineWidth').value = s.outlineWidth;
+        $('#outlineColor').value = s.outlineColor;
+        $('#shadowBlur').value = s.shadowBlur;
+        $('#letterSpacing').value = s.letterSpacing;
+        $('#lineHeight').value = Math.round(s.lineHeight * 10);
+        $('#textTransform').value = s.textTransform;
+        $('#subtitlePosition').value = s.position;
+        $('#hOffset').value = s.hOffset;
+        $('#paddingV').value = s.paddingV;
+        $('#paddingH').value = s.paddingH;
+        $('#borderRadius').value = s.borderRadius;
+
+        // Sync alignment toggle
+        $$('#alignToggle .align-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.align === s.textAlign);
+        });
+
+        // Update badges
+        $('#fontSizeVal').textContent = s.fontSize + 'px';
+        $('#bgOpacityVal').textContent = s.bgOpacity + '%';
+        $('#outlineVal').textContent = s.outlineWidth + 'px';
+        $('#shadowVal').textContent = s.shadowBlur + 'px';
+        $('#letterSpacingVal').textContent = s.letterSpacing + 'px';
+        $('#lineHeightVal').textContent = s.lineHeight.toFixed(1);
+        $('#positionVal').textContent = s.position + '%';
+        $('#hOffsetVal').textContent = s.hOffset + '%';
+        $('#paddingVal').textContent = `${s.paddingV}px ${s.paddingH}px`;
+        $('#borderRadiusVal').textContent = s.borderRadius + 'px';
+
+        renderSubtitle();
+    }
+
+    // Reset
+    resetStylesBtn.addEventListener('click', () => {
+        applyStyle(defaultStyle);
+        $$('.preset-btn').forEach(b => b.classList.remove('active'));
+        toast('Styles reset to defaults', 'info');
+    });
+
+    // ── Export Dimensions & Bitrate Calculation ─────────────────────
+    function computeExportDimensions(nativeW, nativeH, quality) {
+        if (!nativeW || !nativeH) return { w: 1920, h: 1080 };
+        if (quality === 'original') {
+            return {
+                w: nativeW - (nativeW % 2),
+                h: nativeH - (nativeH % 2)
+            };
+        }
+        const aspect = nativeW / nativeH;
+        const isVertical = aspect < 1;
+        let targetShort = 1080;
+        if (quality === '720p') targetShort = 720;
+        else if (quality === '1080p') targetShort = 1080;
+        else if (quality === '2k') targetShort = 1440;
+        else if (quality === '4k') targetShort = 2160;
+
+        let w, h;
+        if (isVertical) {
+            // For vertical (Shorts / Reels 9:16)
+            w = targetShort;
+            h = Math.round(targetShort / aspect);
+        } else {
+            // For landscape (16:9) or square
+            h = targetShort;
+            w = Math.round(targetShort * aspect);
+        }
+        w = w - (w % 2);
+        h = h - (h % 2);
+        return { w, h };
+    }
+
+    function getBitrateForQuality(quality, fps, pixelCount) {
+        const is60 = fps >= 60;
+        if (quality === '4k' || pixelCount >= 3840 * 2160 * 0.7) {
+            return is60 ? 30_000_000 : 22_000_000;
+        }
+        if (quality === '2k' || pixelCount >= 2560 * 1440 * 0.7) {
+            return is60 ? 16_000_000 : 12_000_000;
+        }
+        if (quality === '1080p' || pixelCount >= 1920 * 1080 * 0.7) {
+            return is60 ? 10_000_000 : 7_000_000;
+        }
+        return is60 ? 5_000_000 : 3_500_000;
+    }
+
+    // ── Export (Hardware-Accelerated Frame-by-Frame MP4 with AAC Audio) ──
+    exportBtn.addEventListener('click', async () => {
+        if (!videoFile || subtitles.length === 0) {
+            toast('Load a video and subtitle file first', 'error');
+            return;
+        }
+
+        exportBtn.disabled = true;
+        exportProgress.classList.remove('hidden');
+        exportBarFill.style.width = '0%';
+        exportLabel.textContent = 'Preparing export…';
+
+        const qualityPreset = exportResolution ? exportResolution.value : 'original';
+        const targetFps = exportFps ? Number(exportFps.value) : 60;
+
+        let audioCtx = null;
+        let exportVid = null;
+
+        try {
+            // Create dedicated offscreen video element for export
+            exportVid = document.createElement('video');
+            exportVid.src = videoURL;
+            exportVid.crossOrigin = 'anonymous';
+            exportVid.playsInline = true;
+            exportVid.muted = true; // Muted during offscreen render
+            exportVid.style.position = 'fixed';
+            exportVid.style.top = '-9999px';
+            exportVid.style.left = '-9999px';
+            exportVid.style.opacity = '0';
+            exportVid.style.pointerEvents = 'none';
+            document.body.appendChild(exportVid);
+
+            await new Promise((res, rej) => {
+                exportVid.onloadedmetadata = res;
+                exportVid.onerror = () => rej(new Error('Failed to load video metadata for export'));
+            });
+
+            // Calculate target dimensions (always even numbers)
+            const dims = computeExportDimensions(exportVid.videoWidth, exportVid.videoHeight, qualityPreset);
+            const W = dims.w;
+            const H = dims.h;
+            const resLabel = qualityPreset === 'original' ? `${W}x${H}` : qualityPreset.toUpperCase();
+            const bitrate = getBitrateForQuality(qualityPreset, targetFps, W * H);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+
+            // Check for WebCodecs + Mp4Muxer (Standard MP4 with FastStart, WhatsApp & iOS fully supported)
+            const hasWebCodecs = (typeof window.VideoEncoder === 'function' && typeof window.Mp4Muxer !== 'undefined');
+
+            if (hasWebCodecs) {
+                exportLabel.textContent = 'Extracting audio track…';
+                exportBarFill.style.width = '3%';
+
+                // Extract audio from source video file
+                let audioBuffer = null;
+                let audioChannels = 2;
+                let audioSampleRate = 44100;
+                try {
+                    const arrayBuffer = await videoFile.arrayBuffer();
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                    if (audioBuffer) {
+                        audioSampleRate = audioBuffer.sampleRate;
+                        audioChannels = Math.min(2, audioBuffer.numberOfChannels);
+                    }
+                } catch (aErr) {
+                    console.warn('Audio decoding skipped or no audio in video:', aErr);
+                    audioBuffer = null;
+                }
+
+                // Initialize Mp4Muxer with FastStart (moov at start, zero moof fragments)
+                const muxer = new Mp4Muxer.Muxer({
+                    target: new Mp4Muxer.ArrayBufferTarget(),
+                    video: {
+                        codec: 'avc',
+                        width: W,
+                        height: H
+                    },
+                    audio: audioBuffer ? {
+                        codec: 'aac',
+                        numberOfChannels: audioChannels,
+                        sampleRate: audioSampleRate
+                    } : undefined,
+                    fastStart: 'in-memory',
+                    firstTimestampBehavior: 'offset'
+                });
+
+                // Encode audio track if present
+                if (audioBuffer && typeof window.AudioEncoder === 'function') {
+                    try {
+                        const audioEncoder = new AudioEncoder({
+                            output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+                            error: (e) => console.error('AudioEncoder error:', e)
+                        });
+
+                        audioEncoder.configure({
+                            codec: 'mp4a.40.2',
+                            sampleRate: audioSampleRate,
+                            numberOfChannels: audioChannels,
+                            bitrate: 192_000
+                        });
+
+                        const chunkSize = 2048;
+                        const totalSamples = audioBuffer.length;
+                        let sampleOffset = 0;
+                        const channelData = [];
+                        for (let c = 0; c < audioChannels; c++) {
+                            channelData.push(audioBuffer.getChannelData(c));
+                        }
+
+                        while (sampleOffset < totalSamples) {
+                            const curChunk = Math.min(chunkSize, totalSamples - sampleOffset);
+                            const planar = new Float32Array(curChunk * audioChannels);
+                            for (let c = 0; c < audioChannels; c++) {
+                                planar.set(channelData[c].subarray(sampleOffset, sampleOffset + curChunk), c * curChunk);
+                            }
+
+                            const audioData = new AudioData({
+                                format: 'f32-planar',
+                                sampleRate: audioSampleRate,
+                                numberOfFrames: curChunk,
+                                numberOfChannels: audioChannels,
+                                timestamp: Math.round((sampleOffset / audioSampleRate) * 1_000_000),
+                                data: planar
+                            });
+
+                            audioEncoder.encode(audioData);
+                            audioData.close();
+                            sampleOffset += curChunk;
+                        }
+
+                        await audioEncoder.flush();
+                        audioEncoder.close();
+                    } catch (aEncErr) {
+                        console.warn('AudioEncoder failed, proceeding with video:', aEncErr);
+                    }
+                }
+
+                // Determine best AVC profile level
+                let avcCodec = 'avc1.4d0028'; // 1080p Main Profile
+                if (W <= 1280 && H <= 720) {
+                    avcCodec = 'avc1.42001f'; // 720p Baseline
+                } else if (W > 1920 || H > 1080) {
+                    avcCodec = 'avc1.4d0033'; // 4K Main 5.1
+                }
+
+                try {
+                    const supp = await VideoEncoder.isConfigSupported({
+                        codec: avcCodec,
+                        width: W,
+                        height: H,
+                        bitrate: bitrate,
+                        framerate: targetFps
+                    });
+                    if (!supp || !supp.supported) {
+                        avcCodec = 'avc1.42002a';
+                    }
+                } catch (e) {
+                    avcCodec = 'avc1.42001f';
+                }
+
+                const videoEncoder = new VideoEncoder({
+                    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+                    error: (e) => console.error('VideoEncoder error:', e)
+                });
+
+                videoEncoder.configure({
+                    codec: avcCodec,
+                    width: W,
+                    height: H,
+                    bitrate: bitrate,
+                    framerate: targetFps
+                });
+
+                const totalDuration = exportVid.duration || 1;
+                const totalFrames = Math.max(1, Math.round(totalDuration * targetFps));
+                const frameDurationMicro = Math.round((1 / targetFps) * 1_000_000);
+
+                // Deterministic Frame-by-Frame Rendering: 100% butter-smooth, 0 frame drops
+                for (let i = 0; i < totalFrames; i++) {
+                    const targetTime = i / targetFps;
+                    exportVid.currentTime = targetTime;
+                    await new Promise((resolve) => {
+                        const onSeeked = () => {
+                            exportVid.removeEventListener('seeked', onSeeked);
+                            resolve();
+                        };
+                        exportVid.addEventListener('seeked', onSeeked);
+                    });
+
+                    // Draw video frame to canvas
+                    ctx.drawImage(exportVid, 0, 0, W, H);
+
+                    // Find and render active subtitle
+                    const activeSub = subtitles.find(s => targetTime >= s.start && targetTime <= s.end);
+                    if (activeSub) {
+                        drawSubtitleOnCanvas(ctx, activeSub.text, W, H);
+                    }
+
+                    const timestampMicro = Math.round(targetTime * 1_000_000);
+                    const videoFrame = new VideoFrame(canvas, {
+                        timestamp: timestampMicro,
+                        duration: frameDurationMicro
+                    });
+
+                    const isKeyframe = (i % (targetFps * 2) === 0);
+                    videoEncoder.encode(videoFrame, { keyFrame: isKeyframe });
+                    videoFrame.close();
+
+                    if (i % 6 === 0 || i === totalFrames - 1) {
+                        const pct = Math.min(99, Math.round(((i + 1) / totalFrames) * 100));
+                        exportBarFill.style.width = pct + '%';
+                        exportLabel.textContent = `Rendering smooth ${resLabel} @ ${targetFps}fps… ${pct}% (frame ${i + 1}/${totalFrames})`;
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+
+                exportLabel.textContent = 'Muxing standard MP4 file…';
+                await videoEncoder.flush();
+                videoEncoder.close();
+                muxer.finalize();
+
+                const finalBuffer = muxer.target.buffer;
+                const blob = new Blob([finalBuffer], { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const baseName = videoFile.name.replace(/\.[^.]+$/, '');
+                a.download = `${baseName}_subtitled.mp4`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                exportLabel.textContent = 'Export complete! Standard MP4 ready';
+                exportBarFill.style.width = '100%';
+                toast('Video exported successfully in smooth standard MP4 format!', 'success');
+            } else {
+                // Fallback for browsers without WebCodecs
+                exportLabel.textContent = 'Rendering with MediaRecorder fallback…';
+                const stream = canvas.captureStream(targetFps);
+
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') await audioCtx.resume();
+                    const sourceNode = audioCtx.createMediaElementSource(exportVid);
+                    const destNode = audioCtx.createMediaStreamDestination();
+                    sourceNode.connect(destNode);
+                    const audioTracks = destNode.stream.getAudioTracks();
+                    if (audioTracks.length > 0) stream.addTrack(audioTracks[0]);
+                } catch (aErr) {
+                    console.warn('Audio fallback failed:', aErr);
+                }
+
+                const mimeType = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=h264', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || 'video/mp4';
+                const isMp4 = mimeType.includes('mp4');
+                const fileExtension = isMp4 ? 'mp4' : 'webm';
+
+                const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitrate });
+                const chunks = [];
+                recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+                const done = new Promise((res, rej) => {
+                    recorder.onstop = res;
+                    recorder.onerror = rej;
+                });
+
+                recorder.start(100);
+                exportVid.currentTime = 0;
+                await exportVid.play();
+
+                const totalDuration = exportVid.duration || 1;
+                let isCompleted = false;
+
+                function drawFrame() {
+                    if (isCompleted) return;
+                    if (exportVid.ended || exportVid.paused || exportVid.currentTime >= totalDuration - 0.05) {
+                        isCompleted = true;
+                        if (recorder && recorder.state !== 'inactive') recorder.stop();
+                        return;
+                    }
+                    ctx.drawImage(exportVid, 0, 0, W, H);
+                    const currentTime = exportVid.currentTime;
+                    const activeSub = subtitles.find(s => currentTime >= s.start && currentTime <= s.end);
+                    if (activeSub) drawSubtitleOnCanvas(ctx, activeSub.text, W, H);
+
+                    const pct = Math.min(99, Math.round((currentTime / totalDuration) * 100));
+                    exportBarFill.style.width = pct + '%';
+                    exportLabel.textContent = `Rendering ${resLabel} @ ${targetFps}fps… ${pct}%`;
+                    requestAnimationFrame(drawFrame);
+                }
+
+                exportVid.onended = () => {
+                    isCompleted = true;
+                    if (recorder && recorder.state !== 'inactive') recorder.stop();
+                };
+                requestAnimationFrame(drawFrame);
+                await done;
+
+                const blob = new Blob(chunks, { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const baseName = videoFile.name.replace(/\.[^.]+$/, '');
+                a.download = `${baseName}_subtitled.${fileExtension}`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                exportLabel.textContent = `Export complete! Saved as .${fileExtension}`;
+                exportBarFill.style.width = '100%';
+                toast(`Video exported as .${fileExtension}`, 'success');
+            }
+        } catch (err) {
+            console.error('Export error:', err);
+            toast('Export failed: ' + err.message, 'error');
+            exportLabel.textContent = 'Export failed';
+        } finally {
+            if (audioCtx && audioCtx.state !== 'closed') {
+                audioCtx.close().catch(() => {});
+            }
+            if (exportVid && exportVid.parentNode) {
+                exportVid.parentNode.removeChild(exportVid);
+            }
+            exportBtn.disabled = false;
+            setTimeout(() => exportProgress.classList.add('hidden'), 5000);
+        }
+    });
+
+    function drawSubtitleOnCanvas(ctx, text, W, H) {
+        if (!text) return;
+
+        // Apply text transform
+        if (style.textTransform === 'uppercase') text = text.toUpperCase();
+        else if (style.textTransform === 'lowercase') text = text.toLowerCase();
+        else if (style.textTransform === 'capitalize') text = text.replace(/\b\w/g, c => c.toUpperCase());
+
+        // Compute pixel-perfect scale factor based on preview video rendered height vs canvas height
+        const previewRect = videoPlayer.getBoundingClientRect();
+        const previewH = (previewRect && previewRect.height > 0) ? previewRect.height : (videoPlayer.clientHeight || 400);
+        const scaleFactor = H / previewH;
+
+        const fontSize = Math.round(style.fontSize * scaleFactor);
+        const padding = {
+            v: Math.round(style.paddingV * scaleFactor),
+            h: Math.round(style.paddingH * scaleFactor)
+        };
+        const outlineW = Math.round(style.outlineWidth * scaleFactor);
+        const shadowB  = Math.round(style.shadowBlur * scaleFactor);
+        const radius   = Math.round(style.borderRadius * scaleFactor);
+        const letterSp = style.letterSpacing * scaleFactor;
+
+        ctx.save();
+        ctx.textAlign = style.textAlign;
+        ctx.textBaseline = 'top';
+        ctx.font = `${style.fontWeight} ${fontSize}px '${style.fontFamily}', sans-serif`;
+        if ('letterSpacing' in ctx && letterSp) {
+            ctx.letterSpacing = `${letterSp}px`;
+        }
+
+        // Word-wrap matching preview: in preview, .sub-text has max-width: 85%
+        const maxW = W * 0.85;
+        const lines = wrapText(ctx, text, maxW - padding.h * 2);
+        const lineH = fontSize * style.lineHeight;
+        const blockH = lines.length * lineH;
+        const totalH = blockH + padding.v * 2;
+        const totalW_arr = lines.map(l => ctx.measureText(l).width);
+        const textMaxW = Math.max(...totalW_arr);
+        const totalW = Math.min(maxW, textMaxW + padding.h * 2);
+
+        // Vertical center calculation: matches preview translate(-50%, -50%)
+        const vPos = (typeof style.position === 'number' && !isNaN(style.position)) ? style.position : 50;
+        const hPos = (typeof style.hOffset === 'number' && !isNaN(style.hOffset)) ? style.hOffset : 50;
+
+        const yCenter = (vPos / 100) * H;
+        const y = yCenter - totalH / 2;
+
+        // Horizontal position based on offset: matches preview translate(-50%, -50%)
+        const xCenter = (hPos / 100) * W;
+        const bgX = xCenter - totalW / 2;
+
+        let textX = xCenter;
+        if (style.textAlign === 'left') {
+            textX = bgX + padding.h;
+        } else if (style.textAlign === 'right') {
+            textX = bgX + totalW - padding.h;
+        } else {
+            textX = xCenter;
+        }
+
+        // Draw background
+        if (style.bgOpacity > 0 && style.bgColor !== 'transparent') {
+            const bgRgb = hexToRgb(style.bgColor);
+            ctx.fillStyle = `rgba(${bgRgb.r},${bgRgb.g},${bgRgb.b},${style.bgOpacity / 100})`;
+            roundRect(ctx, bgX, y, totalW, totalH, radius);
+            ctx.fill();
+        }
+
+        // Draw text
+        if (shadowB > 0) {
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = shadowB;
+            ctx.shadowOffsetY = Math.round(2 * scaleFactor);
+        }
+
+        lines.forEach((line, i) => {
+            const ly = y + padding.v + i * lineH;
+
+            // Outline
+            if (outlineW > 0) {
+                ctx.strokeStyle = style.outlineColor;
+                ctx.lineWidth = outlineW * 2;
+                ctx.lineJoin = 'round';
+                ctx.miterLimit = 2;
+                ctx.strokeText(line, textX, ly);
+            }
+
+            // Fill
+            ctx.fillStyle = style.textColor;
+            ctx.fillText(line, textX, ly);
+        });
+
+        ctx.restore();
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+        const paragraphs = text.split('\n');
+        const result = [];
+        for (const para of paragraphs) {
+            const words = para.split(' ');
+            let line = '';
+            for (const word of words) {
+                const testLine = line ? line + ' ' + word : word;
+                if (ctx.measureText(testLine).width > maxWidth && line) {
+                    result.push(line);
+                    line = word;
+                } else {
+                    line = testLine;
+                }
+            }
+            if (line) result.push(line);
+        }
+        return result.length ? result : [''];
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    // ── Automatic Language Detection & Subtitle Generator ────────────
+    const LANGUAGE_MAP = {
+        en: { name: 'English', flag: '' },
+        hindish: { name: 'Hindish (Roman English)', flag: '' },
+        hi: { name: 'Hindi (हिन्दी)', flag: '🇮🇳' },
+        ur: { name: 'Urdu (اردو)', flag: '🇵🇰' },
+        'ur-roman': { name: 'Roman Urdu', flag: '🇵🇰' },
+        es: { name: 'Spanish', flag: '🇪🇸' },
+        fr: { name: 'French', flag: '🇫🇷' },
+        de: { name: 'German', flag: '🇩🇪' },
+        ar: { name: 'Arabic', flag: '🇸🇦' },
+        zh: { name: 'Chinese', flag: '🇨🇳' },
+        ja: { name: 'Japanese', flag: '🇯🇵' },
+        ko: { name: 'Korean', flag: '🇰🇷' },
+        pt: { name: 'Portuguese', flag: '🇵🇹' },
+        ru: { name: 'Russian', flag: '🇷🇺' },
+        it: { name: 'Italian', flag: '🇮🇹' },
+        tr: { name: 'Turkish', flag: '🇹🇷' },
+        id: { name: 'Indonesian', flag: '🇮🇩' },
+        nl: { name: 'Dutch', flag: '🇳🇱' },
+        pl: { name: 'Polish', flag: '🇵🇱' },
+        sv: { name: 'Swedish', flag: '🇸🇪' },
+        vi: { name: 'Vietnamese', flag: '🇻🇳' },
+        th: { name: 'Thai', flag: '🇹🇭' },
+    };
+
+    // Hindi & Hindish Choice Controller
+    function setHindiScriptChoice(choice) {
+        hindiScriptChoice = choice;
+        if (hindiChoiceBadge) {
+            hindiChoiceBadge.textContent = choice === 'hindish' ? 'Hindish (Roman English)' : 'Hindi (Devanagari)';
+        }
+        if (scriptCardHindish) scriptCardHindish.classList.toggle('active', choice === 'hindish');
+        if (scriptCardDevanagari) scriptCardDevanagari.classList.toggle('active', choice === 'devanagari');
+        if (resChoiceHindish) resChoiceHindish.classList.toggle('active', choice === 'hindish');
+        if (resChoiceHindi) resChoiceHindi.classList.toggle('active', choice === 'devanagari');
+    }
+
+    if (scriptCardHindish) {
+        scriptCardHindish.addEventListener('click', () => {
+            setHindiScriptChoice('hindish');
+            if (transcribeLanguage && transcribeLanguage.value === 'hi') {
+                transcribeLanguage.value = 'hindish';
+            }
+        });
+    }
+    if (scriptCardDevanagari) {
+        scriptCardDevanagari.addEventListener('click', () => {
+            setHindiScriptChoice('devanagari');
+            if (transcribeLanguage && transcribeLanguage.value === 'hindish') {
+                transcribeLanguage.value = 'hi';
+            }
+        });
+    }
+
+    if (resChoiceHindish) {
+        resChoiceHindish.addEventListener('click', () => switchSubtitleScript('hindish'));
+    }
+    if (resChoiceHindi) {
+        resChoiceHindi.addEventListener('click', () => switchSubtitleScript('devanagari'));
+    }
+
+    if (transcribeLanguage) {
+        transcribeLanguage.addEventListener('change', () => {
+            const val = transcribeLanguage.value;
+            if (val === 'hindish') {
+                setHindiScriptChoice('hindish');
+                hindiChoiceBox?.classList.remove('hidden');
+            } else if (val === 'hi') {
+                setHindiScriptChoice('devanagari');
+                hindiChoiceBox?.classList.remove('hidden');
+            } else if (val === 'auto') {
+                hindiChoiceBox?.classList.remove('hidden');
+            } else {
+                hindiChoiceBox?.classList.add('hidden');
+            }
+        });
+    }
+
+    // Dynamic Script Switcher (Devanagari <-> Hindish / Roman English)
+    function switchSubtitleScript(targetScript) {
+        if (!subtitles || subtitles.length === 0) return;
+        activeScript = targetScript;
+
+        for (const cue of subtitles) {
+            if (!cue.textDevanagari && !cue.textHindish) {
+                if (/[\u0900-\u097F]/.test(cue.text)) {
+                    cue.textDevanagari = cue.text;
+                    cue.textHindish = devanagariToHindish(cue.text);
+                }
+            }
+
+            if (targetScript === 'hindish') {
+                cue.text = cue.textHindish || devanagariToHindish(cue.text);
+            } else {
+                cue.text = cue.textDevanagari || cue.text;
+            }
+        }
+
+        setHindiScriptChoice(targetScript);
+        updateScriptToggleChip();
+        renderSubtitle();
+
+        const langName = targetScript === 'hindish' ? 'Hindish (Roman English)' : 'Hindi (Devanagari)';
+        const flag = targetScript === 'hindish' ? 'Aa' : 'हि';
+        detectedLanguage = targetScript;
+        if (detectedLangLabel) detectedLangLabel.textContent = `${flag} ${langName}`;
+        toast(`Subtitles converted to ${langName}!`, 'info');
+    }
+
+    function updateScriptToggleChip() {
+        if (!toggleScriptBtn) return;
+        const hasHindi = subtitles.some(c =>
+            (c.textDevanagari && c.textHindish) ||
+            /[\u0900-\u097F]/.test(c.text) ||
+            detectedLanguage === 'hi' ||
+            detectedLanguage === 'hindish'
+        );
+
+        if (hasHindi) {
+            toggleScriptBtn.classList.remove('hidden');
+            if (toggleScriptLabel) {
+                toggleScriptLabel.textContent = activeScript === 'hindish'
+                    ? 'Switch to Hindi (हिन्दी)'
+                    : 'Switch to Hindish (Roman)';
+            }
+        } else {
+            toggleScriptBtn.classList.add('hidden');
+        }
+    }
+
+    if (toggleScriptBtn) {
+        toggleScriptBtn.addEventListener('click', () => {
+            const nextScript = activeScript === 'hindish' ? 'devanagari' : 'hindish';
+            switchSubtitleScript(nextScript);
+        });
+    }
+
+    // Load saved API key
+    const savedApiKey = localStorage.getItem('captioniq_cloud_api_key');
+    if (savedApiKey && cloudApiKey) {
+        cloudApiKey.value = savedApiKey;
+        if (apiKeyStatus) apiKeyStatus.textContent = 'Saved in browser';
+    }
+
+    // Modal tabs toggle
+    engineTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            engineTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentEngine = tab.dataset.engine;
+            if (currentEngine === 'local') {
+                tabContentLocal.classList.remove('hidden');
+                tabContentCloud.classList.add('hidden');
+            } else {
+                tabContentLocal.classList.add('hidden');
+                tabContentCloud.classList.remove('hidden');
+            }
+        });
+    });
+
+    if (cloudApiKey) {
+        cloudApiKey.addEventListener('input', () => {
+            const val = cloudApiKey.value.trim();
+            if (val) {
+                localStorage.setItem('captioniq_cloud_api_key', val);
+                if (apiKeyStatus) apiKeyStatus.textContent = 'Saved in browser';
+            } else {
+                localStorage.removeItem('captioniq_cloud_api_key');
+                if (apiKeyStatus) apiKeyStatus.textContent = 'Not saved';
+            }
+        });
+    }
+
+    function openAutoSubModal() {
+        if (!videoFile) {
+            toast('Please upload a video file first!', 'info');
+            videoUploadCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            videoUploadCard.classList.add('drag-over');
+            setTimeout(() => videoUploadCard.classList.remove('drag-over'), 1200);
+            return;
+        }
+        resetAiModalState();
+        autoSubModal.classList.remove('hidden');
+    }
+
+    function closeAutoSubModal() {
+        if (isTranscribing) {
+            if (!confirm('Transcription is currently in progress. Cancel?')) return;
+            isTranscribing = false;
+        }
+        autoSubModal.classList.add('hidden');
+    }
+
+    if (triggerAutoSubUploadBtn) triggerAutoSubUploadBtn.addEventListener('click', openAutoSubModal);
+    if (autoSubEditorBtn) autoSubEditorBtn.addEventListener('click', openAutoSubModal);
+    if (closeAutoSubModalBtn) closeAutoSubModalBtn.addEventListener('click', closeAutoSubModal);
+    if (cancelAutoSubBtn) cancelAutoSubBtn.addEventListener('click', closeAutoSubModal);
+
+    // Close on backdrop click
+    if (autoSubModal) {
+        autoSubModal.addEventListener('click', (e) => {
+            if (e.target === autoSubModal) closeAutoSubModal();
+        });
+    }
+
+    function resetAiModalState() {
+        isTranscribing = false;
+        if (aiProgressSection) aiProgressSection.classList.add('hidden');
+        if (aiResultBanner) aiResultBanner.classList.add('hidden');
+        if (startTranscribeBtn) {
+            startTranscribeBtn.disabled = false;
+            startTranscribeBtn.innerHTML = 'Start Auto-Transcription';
+        }
+        if (aiProgressBar) aiProgressBar.style.width = '0%';
+        [stepAudio, stepModel, stepTranscribe].forEach(s => {
+            if (s) { s.classList.remove('active', 'done'); }
+        });
+    }
+
+    function updateAiStep(step, statusText, pct) {
+        if (!aiProgressSection) return;
+        aiProgressSection.classList.remove('hidden');
+        if (aiStatusText) aiStatusText.textContent = statusText;
+        if (aiProgressPct) aiProgressPct.textContent = `${Math.round(pct)}%`;
+        if (aiProgressBar) aiProgressBar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+
+        if (step === 'audio') {
+            stepAudio?.classList.add('active');
+        } else if (step === 'model') {
+            stepAudio?.classList.remove('active');
+            stepAudio?.classList.add('done');
+            stepModel?.classList.add('active');
+        } else if (step === 'transcribe') {
+            stepAudio?.classList.remove('active');
+            stepAudio?.classList.add('done');
+            stepModel?.classList.remove('active');
+            stepModel?.classList.add('done');
+            stepTranscribe?.classList.add('active');
+        } else if (step === 'done') {
+            stepAudio?.classList.add('done');
+            stepModel?.classList.add('done');
+            stepTranscribe?.classList.remove('active');
+            stepTranscribe?.classList.add('done');
+        }
+    }
+
+    // Audio extraction & 16kHz resampler
+    async function extractAudioData(file, onProgress) {
+        onProgress?.(10);
+        const arrayBuffer = await file.arrayBuffer();
+        onProgress?.(30);
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let audioBuffer;
+        try {
+            audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+        } catch (err) {
+            audioCtx.close();
+            throw new Error('Unable to extract audio track from video file: ' + err.message);
+        }
+
+        onProgress?.(60);
+        const targetSampleRate = 16000;
+        const targetLength = Math.max(1, Math.ceil(audioBuffer.duration * targetSampleRate));
+        const offlineCtx = new OfflineAudioContext(1, targetLength, targetSampleRate);
+
+        const source = offlineCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(offlineCtx.destination);
+        source.start(0);
+
+        const rendered = await offlineCtx.startRendering();
+        audioCtx.close();
+        onProgress?.(95);
+
+        return {
+            pcm16k: rendered.getChannelData(0),
+            duration: audioBuffer.duration,
+        };
+    }
+
+    // Convert Float32Array PCM to standard 16-bit WAV Blob
+    function pcmToWavBlob(samples, sampleRate = 16000) {
+        const buffer = new ArrayBuffer(44 + samples.length * 2);
+        const view = new DataView(buffer);
+
+        const writeString = (offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + samples.length * 2, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, samples.length * 2, true);
+
+        let offset = 44;
+        for (let i = 0; i < samples.length; i++, offset += 2) {
+            const s = Math.max(-1, Math.min(1, samples[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+    // ── Devanagari to Hindish (Roman English) Transliteration Engine ──
+    function devanagariToHindish(text) {
+        if (!text) return '';
+
+        // High-frequency colloquial vocabulary for natural Roman Hindi / Hindish
+        const wordMap = {
+            'नमस्ते': 'namaste', 'स्वागत': 'swagat', 'दोस्तो': 'dosto', 'दोस्तों': 'dosto',
+            'है': 'hai', 'हैं': 'hain', 'था': 'tha', 'थी': 'thi', 'थे': 'the', 'हो': 'ho', 'हूँ': 'hoon', 'हूं': 'hoon',
+            'का': 'ka', 'की': 'ki', 'के': 'ke', 'को': 'ko', 'में': 'mein', 'से': 'se', 'पर': 'par', 'ने': 'ne',
+            'और': 'aur', 'या': 'ya', 'नहीं': 'nahin', 'न': 'na', 'भी': 'bhi', 'तो': 'to', 'ही': 'hi',
+            'क्या': 'kya', 'क्यों': 'kyun', 'कैसे': 'kaise', 'कब': 'kab', 'कहाँ': 'kahan', 'कहा': 'kaha',
+            'यह': 'yeh', 'वह': 'woh', 'ये': 'ye', 'वे': 'woh', 'हम': 'hum', 'तुम': 'tum', 'आप': 'aap',
+            'मेरा': 'mera', 'मेरी': 'meri', 'मेरे': 'mere', 'तेरा': 'tera', 'आपका': 'aapka', 'आपकी': 'aapki', 'आपके': 'aapke',
+            'बहुत': 'bahut', 'अच्छा': 'accha', 'अच्छी': 'acchi', 'अच्छे': 'acche',
+            'करना': 'karna', 'कर': 'kar', 'रहा': 'raha', 'रही': 'rahi', 'रहे': 'rahe', 'करें': 'karein', 'करनी': 'karni', 'करने': 'karne',
+            'सकता': 'sakta', 'सकते': 'sakte', 'सकती': 'sakti', 'गया': 'gaya', 'गए': 'gaye', 'गई': 'gayi',
+            'जाना': 'jaana', 'आना': 'aana', 'देखना': 'dekhna', 'देखा': 'dekha', 'देख': 'dekh', 'दें': 'dein', 'लें': 'lein',
+            'लाइक': 'like', 'शेयर': 'share', 'सब्सक्राइब': 'subscribe', 'चैनल': 'channel',
+            'वीडियो': 'video', 'टाइम': 'time', 'बात': 'baat', 'लोग': 'log', 'आज': 'aaj', 'कल': 'kal',
+            'भूलें': 'bhulein', 'जानते': 'jaante', 'वाले': 'waale', 'वाला': 'waala', 'वाली': 'waali',
+            'कि': 'ki', 'इसे': 'ise', 'उसे': 'use', 'सब': 'sab', 'कुछ': 'kuch', 'कोई': 'koi',
+            'बारे': 'baare', 'साथ': 'saath', 'सिर्फ': 'sirf', 'हमेशा': 'hamesha', 'पहले': 'pehle', 'बाद': 'baad',
+            'ज़रूर': 'zaroor', 'जरूर': 'zaroor', 'शुक्रिया': 'shukriya', 'धन्यवाद': 'dhanyawad', 'मैं': 'main'
+        };
+
+        const vowels = {
+            'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ee', 'उ': 'u', 'ऊ': 'oo', 'ऋ': 'ri',
+            'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au', 'अं': 'an', 'अः': 'ah'
+        };
+
+        const matras = {
+            'ा': 'aa', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo', 'ृ': 'ri',
+            'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au', 'ं': 'n', 'ँ': 'n', 'ः': 'h'
+        };
+
+        const consonants = {
+            'क': 'k', 'ख': 'kh', 'ग': 'g', 'घ': 'gh', 'ङ': 'ng',
+            'च': 'ch', 'छ': 'chh', 'ज': 'j', 'झ': 'jh', 'ञ': 'ny',
+            'ट': 't', 'ठ': 'th', 'ड': 'd', 'ढ': 'dh', 'ण': 'n',
+            'त': 't', 'थ': 'th', 'द': 'd', 'ध': 'dh', 'न': 'n',
+            'प': 'p', 'फ': 'ph', 'ब': 'b', 'भ': 'bh', 'म': 'm',
+            'य': 'y', 'र': 'r', 'ल': 'l', 'व': 'v', 'श': 'sh', 'ष': 'sh', 'स': 's', 'ह': 'h',
+            'क़': 'q', 'ख़': 'kh', 'ग़': 'gh', 'ज़': 'z', 'ड़': 'r', 'ढ़': 'rh', 'फ़': 'f'
+        };
+
+        const HALANT = '्';
+
+        return text.replace(/[\u0900-\u097F]+/g, (hindiWord) => {
+            if (wordMap[hindiWord]) return wordMap[hindiWord];
+
+            let out = '';
+            const len = hindiWord.length;
+
+            for (let i = 0; i < len; i++) {
+                const ch = hindiWord[i];
+                const nextCh = i + 1 < len ? hindiWord[i + 1] : null;
+
+                if (vowels[ch]) {
+                    out += vowels[ch];
+                } else if (consonants[ch]) {
+                    const cTrans = consonants[ch];
+                    if (nextCh === HALANT) {
+                        out += cTrans;
+                        i++; // skip halant
+                    } else if (nextCh && matras[nextCh]) {
+                        out += cTrans + matras[nextCh];
+                        i++; // skip matra
+                    } else if (nextCh && (consonants[nextCh] || vowels[nextCh])) {
+                        out += cTrans + 'a';
+                    } else {
+                        // End of word or syllable: Hindi schwa deletion
+                        out += (len === 1) ? (cTrans + 'a') : cTrans;
+                    }
+                } else if (matras[ch]) {
+                    out += matras[ch];
+                } else {
+                    out += ch;
+                }
+            }
+            return out;
+        }).replace(/।/g, '.').replace(/॥/g, '.');
+    }
+
+    // Fast script & word based language detector
+    function detectLanguageFromText(text) {
+        if (!text || !text.trim()) return 'en';
+        const str = text.trim();
+
+        // Script checks
+        if (/[\u0600-\u06FF]/.test(str)) {
+            // Check Urdu markers
+            if (/[ٹڈڑںےہ]/.test(str)) return 'ur';
+            return 'ar';
+        }
+        if (/[\u0900-\u097F]/.test(str)) return 'hi';
+        if (/[\u4E00-\u9FFF]/.test(str)) return 'zh';
+        if (/[\u3040-\u309F\u30A0-\u30FF]/.test(str)) return 'ja';
+        if (/[\uAC00-\uD7AF]/.test(str)) return 'ko';
+        if (/[\u0400-\u04FF]/.test(str)) return 'ru';
+
+        // Latin word frequency check (including Hindish / Roman English!)
+        const words = str.toLowerCase().replace(/[^\p{L}\s]/gu, '').split(/\s+/);
+        const counts = { hindish: 0, es: 0, fr: 0, de: 0, pt: 0, it: 0, en: 0 };
+
+        const dicts = {
+            hindish: ['hai', 'hain', 'kya', 'kyun', 'kaise', 'aap', 'hum', 'tum', 'bahut', 'accha', 'acchi', 'mein', 'nahin', 'bhi', 'yeh', 'woh', 'karna', 'raha', 'rahe', 'rahi', 'karein', 'dosto', 'namaste'],
+            es: ['de', 'la', 'que', 'el', 'en', 'los', 'se', 'del', 'las', 'por', 'con', 'una', 'para'],
+            fr: ['de', 'la', 'le', 'et', 'les', 'des', 'en', 'un', 'du', 'une', 'que', 'est', 'pour'],
+            de: ['der', 'die', 'und', 'in', 'den', 'von', 'zu', 'das', 'mit', 'sich', 'des', 'auf', 'ist'],
+            pt: ['de', 'que', 'não', 'do', 'da', 'em', 'um', 'para', 'com', 'uma', 'os', 'no', 'se'],
+            it: ['di', 'il', 'la', 'che', 'in', 'per', 'un', 'del', 'da', 'non', 'le', 'con', 'sono'],
+            en: ['the', 'and', 'of', 'to', 'a', 'in', 'is', 'you', 'that', 'it', 'he', 'was', 'for', 'on', 'are', 'as', 'with', 'this']
+        };
+
+        for (const w of words) {
+            for (const lang of Object.keys(dicts)) {
+                if (dicts[lang].includes(w)) counts[lang]++;
+            }
+        }
+
+        let bestLang = 'en';
+        let maxCount = 0;
+        for (const [lang, cnt] of Object.entries(counts)) {
+            if (cnt > maxCount) {
+                maxCount = cnt;
+                bestLang = lang;
+            }
+        }
+
+        return bestLang;
+    }
+
+    // Refine and pace subtitle chunks
+    function refinePacing(rawChunks, pacingMode = 'standard') {
+        if (!rawChunks || rawChunks.length === 0) return [];
+        if (pacingMode === 'sentence') {
+            return rawChunks.map(c => ({
+                start: Math.max(0, c.start),
+                end: Math.max(c.start + 0.5, c.end),
+                text: c.text.trim()
+            })).filter(c => c.text);
+        }
+
+        const maxWords = pacingMode === 'shorts' ? 3 : 6;
+        const refined = [];
+
+        for (const chunk of rawChunks) {
+            const text = (chunk.text || '').trim();
+            if (!text) continue;
+
+            const words = text.split(/\s+/);
+            if (words.length <= maxWords) {
+                refined.push({
+                    start: Math.max(0, chunk.start),
+                    end: Math.max(chunk.start + 0.4, chunk.end),
+                    text: text
+                });
+                continue;
+            }
+
+            // Subdivide long chunks proportionally
+            const totalDuration = Math.max(0.6, chunk.end - chunk.start);
+            const numSegments = Math.ceil(words.length / maxWords);
+            const segDuration = totalDuration / numSegments;
+
+            for (let i = 0; i < numSegments; i++) {
+                const segWords = words.slice(i * maxWords, (i + 1) * maxWords);
+                if (segWords.length === 0) continue;
+                const segStart = chunk.start + i * segDuration;
+                const segEnd = (i === numSegments - 1) ? chunk.end : (segStart + segDuration);
+                refined.push({
+                    start: Math.round(segStart * 100) / 100,
+                    end: Math.round(Math.max(segStart + 0.3, segEnd) * 100) / 100,
+                    text: segWords.join(' ')
+                });
+            }
+        }
+
+        return refined;
+    }
+
+    // In-Browser Whisper Transcription Engine via Transformers.js
+    async function transcribeInBrowser(pcm16k, selectedLanguage, pacing) {
+        updateAiStep('model', 'Initializing in-browser Whisper AI model…', 35);
+
+        // Dynamically import Transformers.js from CDN
+        let transformers;
+        try {
+            transformers = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+        } catch (err) {
+            throw new Error('Failed to load in-browser AI engine: ' + err.message);
+        }
+
+        const { pipeline, env } = transformers;
+        env.allowLocalModels = false;
+
+        if (!localTranscriber) {
+            updateAiStep('model', 'Loading Whisper model (cached locally)…', 45);
+            localTranscriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+                progress_callback: (prog) => {
+                    if (prog.status === 'progress' && prog.total) {
+                        const pct = Math.round((prog.loaded / prog.total) * 100);
+                        updateAiStep('model', `Downloading model: ${pct}%…`, 35 + pct * 0.3);
+                    }
+                }
+            });
+        }
+
+        updateAiStep('transcribe', 'Detecting language & transcribing audio…', 70);
+
+        const options = {
+            return_timestamps: true,
+            chunk_length_s: 30,
+            stride_length_s: 5,
+        };
+        if (selectedLanguage && selectedLanguage !== 'auto') {
+            options.language = selectedLanguage;
+        }
+
+        const result = await localTranscriber(pcm16k, options);
+        updateAiStep('transcribe', 'Formatting subtitle timestamps…', 95);
+
+        let rawChunks = [];
+        if (result.chunks && result.chunks.length > 0) {
+            rawChunks = result.chunks.map(ch => ({
+                start: Array.isArray(ch.timestamp) ? ch.timestamp[0] : 0,
+                end: Array.isArray(ch.timestamp) ? (ch.timestamp[1] ?? ch.timestamp[0] + 2) : 2,
+                text: ch.text.trim()
+            }));
+        } else if (result.text) {
+            rawChunks = [{ start: 0, end: 3, text: result.text.trim() }];
+        }
+
+        const fullText = result.text || rawChunks.map(c => c.text).join(' ');
+        const detectedCode = (selectedLanguage && selectedLanguage !== 'auto')
+            ? selectedLanguage
+            : detectLanguageFromText(fullText);
+
+        const pacedCues = refinePacing(rawChunks, pacing);
+        return {
+            subtitles: pacedCues,
+            languageCode: detectedCode,
+            fullText: fullText
+        };
+    }
+
+    // Cloud Whisper API (Groq or OpenAI)
+    async function transcribeViaCloud(pcm16k, provider, apiKey, selectedLanguage, pacing) {
+        updateAiStep('model', 'Preparing audio payload…', 40);
+        const wavBlob = pcmToWavBlob(pcm16k, 16000);
+
+        updateAiStep('transcribe', `Sending to ${provider === 'groq' ? 'Groq Whisper Large V3' : 'OpenAI Whisper'}…`, 60);
+
+        const formData = new FormData();
+        formData.append('file', wavBlob, 'audio.wav');
+        formData.append('model', provider === 'groq' ? 'whisper-large-v3' : 'whisper-1');
+        formData.append('response_format', 'verbose_json');
+
+        if (selectedLanguage && selectedLanguage !== 'auto') {
+            formData.append('language', selectedLanguage);
+        }
+
+        const endpoint = provider === 'groq'
+            ? 'https://api.groq.com/openai/v1/audio/transcriptions'
+            : 'https://api.openai.com/v1/audio/transcriptions';
+
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: formData
+        });
+
+        if (!res.ok) {
+            const errJson = await res.json().catch(() => null);
+            const errMsg = errJson?.error?.message || `HTTP ${res.status} ${res.statusText}`;
+            throw new Error(`API Error: ${errMsg}`);
+        }
+
+        const data = await res.json();
+        updateAiStep('transcribe', 'Processing timestamps & detected language…', 92);
+
+        let rawChunks = [];
+        if (data.segments && data.segments.length > 0) {
+            rawChunks = data.segments.map(seg => ({
+                start: seg.start,
+                end: seg.end,
+                text: seg.text.trim()
+            }));
+        } else if (data.text) {
+            rawChunks = [{ start: 0, end: 3, text: data.text.trim() }];
+        }
+
+        let detectedCode = 'en';
+        if (data.language) {
+            const l = data.language.toLowerCase();
+            const found = Object.keys(LANGUAGE_MAP).find(k =>
+                LANGUAGE_MAP[k].name.toLowerCase() === l || k === l
+            );
+            detectedCode = found || l.slice(0, 2);
+        } else {
+            detectedCode = detectLanguageFromText(data.text);
+        }
+
+        const pacedCues = refinePacing(rawChunks, pacing);
+        return {
+            subtitles: pacedCues,
+            languageCode: detectedCode,
+            fullText: data.text || ''
+        };
+    }
+
+    // Main Run Auto-Transcription
+    if (startTranscribeBtn) {
+        startTranscribeBtn.addEventListener('click', async () => {
+            if (isTranscribing) return;
+            if (!videoFile) {
+                toast('Please upload a video first', 'error');
+                return;
+            }
+
+            const chosenLang = transcribeLanguage ? transcribeLanguage.value : 'auto';
+            const chosenPacing = captionPacing ? captionPacing.value : 'standard';
+
+            // Acoustic model language: if Hindish, Whisper model receives 'hi' (Hindi audio)
+            const engineLang = (chosenLang === 'hindish') ? 'hi' : chosenLang;
+
+            let apiKey = '';
+            let provider = 'groq';
+            if (currentEngine === 'cloud') {
+                provider = cloudProvider ? cloudProvider.value : 'groq';
+                apiKey = (cloudApiKey ? cloudApiKey.value : '').trim();
+                if (!apiKey) {
+                    toast(`Please enter your ${provider === 'groq' ? 'Groq' : 'OpenAI'} API key`, 'error');
+                    cloudApiKey?.focus();
+                    return;
+                }
+            }
+
+            isTranscribing = true;
+            startTranscribeBtn.disabled = true;
+            startTranscribeBtn.innerHTML = '<span class="ai-sparkle-icon">⏳</span> Processing Audio…';
+            aiResultBanner?.classList.add('hidden');
+
+            try {
+                // Step 1: Extract Audio
+                updateAiStep('audio', 'Extracting audio track from video…', 15);
+                const { pcm16k, duration } = await extractAudioData(videoFile, (p) => {
+                    updateAiStep('audio', 'Decoding audio stream…', p * 0.25);
+                });
+
+                if (pcm16k.length === 0 || duration <= 0) {
+                    throw new Error('Video audio track appears to be silent or empty.');
+                }
+
+                // Step 2 & 3: Transcribe with chosen engine
+                let result;
+                if (currentEngine === 'cloud') {
+                    result = await transcribeViaCloud(pcm16k, provider, apiKey, engineLang, chosenPacing);
+                } else {
+                    result = await transcribeInBrowser(pcm16k, engineLang, chosenPacing);
+                }
+
+                if (!result.subtitles || result.subtitles.length === 0) {
+                    throw new Error('No speech could be detected in this video.');
+                }
+
+                // Check for Hindi/Devanagari text in subtitles
+                const hasDevanagari = result.subtitles.some(c => /[\u0900-\u097F]/.test(c.text));
+                const isHindiRelated = hasDevanagari || result.languageCode === 'hi' || chosenLang === 'hindish' || chosenLang === 'hi';
+
+                if (isHindiRelated) {
+                    // Precompute both scripts on each cue for instant toggling
+                    result.subtitles.forEach(cue => {
+                        const devanagari = /[\u0900-\u097F]/.test(cue.text) ? cue.text : (cue.textDevanagari || cue.text);
+                        const hindish = devanagariToHindish(devanagari);
+                        cue.textDevanagari = devanagari;
+                        cue.textHindish = hindish;
+                        // Choose active script based on user preference
+                        cue.text = (chosenLang === 'hindish' || hindiScriptChoice === 'hindish') ? hindish : devanagari;
+                    });
+
+                    if (chosenLang === 'hindish' || hindiScriptChoice === 'hindish') {
+                        detectedLanguage = 'hindish';
+                        activeScript = 'hindish';
+                    } else {
+                        detectedLanguage = 'hi';
+                        activeScript = 'devanagari';
+                    }
+
+                    // Show script choice selector on the result banner
+                    if (resScriptSwitch) {
+                        resScriptSwitch.classList.remove('hidden');
+                        setHindiScriptChoice(activeScript);
+                    }
+                } else {
+                    detectedLanguage = result.languageCode;
+                    resScriptSwitch?.classList.add('hidden');
+                }
+
+                // Update app state
+                subtitles = result.subtitles;
+                updateScriptToggleChip();
+
+                const langMeta = LANGUAGE_MAP[detectedLanguage] || { name: detectedLanguage.toUpperCase(), flag: '' };
+
+                // Update UI badges
+                updateAiStep('done', 'Transcription complete!', 100);
+                if (aiResultBanner) {
+                    aiResultBanner.classList.remove('hidden');
+                    if (resIcon) resIcon.textContent = langMeta.flag;
+                    if (resLanguage) resLanguage.textContent = `Detected Language: ${langMeta.name}`;
+                    if (resMeta) resMeta.textContent = `${subtitles.length} subtitle cues generated with precise timestamps`;
+                }
+
+                if (detectedLangLabel) detectedLangLabel.textContent = `${langMeta.flag} ${langMeta.name}`;
+                if (detectedLangChip) detectedLangChip.classList.remove('hidden');
+                if (subtitleStatus) subtitleStatus.textContent = `✓ Auto-generated - ${subtitles.length} cues (${langMeta.name})`;
+                if (subtitleUploadCard) subtitleUploadCard.classList.add('has-file');
+                if (downloadSubBtn) downloadSubBtn.classList.remove('hidden');
+
+                toast(`Language detected: ${langMeta.name} (${subtitles.length} cues generated)`, 'success');
+
+                // Transition to editor
+                setTimeout(() => {
+                    closeAutoSubModal();
+                    checkReady();
+                    renderSubtitle();
+                }, 1400);
+
+            } catch (err) {
+                console.error('Transcription error:', err);
+                toast('Transcription error: ' + err.message, 'error');
+                if (aiStatusText) aiStatusText.textContent = 'Failed: ' + err.message;
+                if (aiProgressBar) aiProgressBar.style.background = 'var(--danger)';
+            } finally {
+                isTranscribing = false;
+                if (startTranscribeBtn) {
+                    startTranscribeBtn.disabled = false;
+                    startTranscribeBtn.innerHTML = 'Start Auto-Transcription';
+                }
+            }
+        });
+    }
+
+    // ── Export / Download Subtitles (.SRT) ───────────────────────────
+    function exportToSRT(cues) {
+        return cues.map((cue, idx) => {
+            const start = secToSrtTime(cue.start);
+            const end = secToSrtTime(cue.end);
+            return `${idx + 1}\r\n${start} --> ${end}\r\n${cue.text}\r\n`;
+        }).join('\r\n');
+    }
+
+    function secToSrtTime(sec) {
+        const s = Math.max(0, sec);
+        const hours = Math.floor(s / 3600);
+        const minutes = Math.floor((s % 3600) / 60);
+        const seconds = Math.floor(s % 60);
+        const millis = Math.floor((s % 1) * 1000);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')},${millis.toString().padStart(3, '0')}`;
+    }
+
+    function downloadCurrentSubtitles() {
+        if (!subtitles || subtitles.length === 0) {
+            toast('No subtitles available to download', 'error');
+            return;
+        }
+        const srtContent = exportToSRT(subtitles);
+        const blob = new Blob([srtContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const base = videoFile ? videoFile.name.replace(/\.[^.]+$/, '') : 'captioniq';
+        const langSuffix = detectedLanguage ? `_${detectedLanguage}` : '';
+        a.download = `${base}${langSuffix}.srt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('Downloaded subtitles (.SRT)!', 'success');
+    }
+
+    if (downloadSubBtn) {
+        downloadSubBtn.addEventListener('click', downloadCurrentSubtitles);
+    }
+
+
+    // =================================================================
+    // Captioniq Landing Page, Mockup Simulator & FAQ Handlers
+    // =================================================================
+
+    // 1. Live Hero Simulator Preset Switcher
+    const heroMockupCaption = document.getElementById('heroMockupCaption');
+    const mockupPills = document.querySelectorAll('.mockup-pill');
+    const heroPresetStyles = {
+        hormozi: {
+            text: 'UNBREAKABLE 60 FPS SUBTITLES',
+            font: "'Oswald', sans-serif",
+            color: '#facc15',
+            outline: '2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000',
+            cls: 'preview-text-hormozi'
+        },
+        mrbeast: {
+            text: 'I GAVE AWAY $1,000,000!',
+            font: "'Impact', sans-serif",
+            color: '#00f5d4',
+            outline: '3px 3px 0px #7b2ff7, -1px -1px 0px #000',
+            cls: 'preview-text-mrbeast'
+        },
+        tiktok: {
+            text: 'wait until the very end...',
+            font: "'Montserrat', sans-serif",
+            color: '#ffffff',
+            outline: '0 2px 8px rgba(0,0,0,0.8)',
+            cls: 'preview-text-tiktok'
+        },
+        cinematic: {
+            text: 'THE WHISPER OF THE OCEAN',
+            font: "'Playfair Display', serif",
+            color: '#fdf6e3',
+            outline: 'none',
+            cls: 'preview-text-cinematic'
+        },
+        neon: {
+            text: 'SYSTEM INITIALIZED // 2049',
+            font: "'Bebas Neue', sans-serif",
+            color: '#38bdf8',
+            outline: '0 0 10px #38bdf8, 0 0 20px #0284c7',
+            cls: 'preview-text-neon'
+        }
+    };
+
+    mockupPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            mockupPills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            const key = pill.dataset.mockup;
+            const s = heroPresetStyles[key];
+            if (s && heroMockupCaption) {
+                heroMockupCaption.innerHTML = `<span class="${s.cls}">${s.text}</span>`;
+            }
+        });
+    });
+
+    // 2. Showcase Grid "Apply This Preset" Buttons
+    document.querySelectorAll('[data-apply-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const presetKey = btn.dataset.applyPreset;
+            const targetBtn = document.querySelector(`.preset-btn[data-preset="${presetKey}"]`);
+            if (targetBtn) {
+                targetBtn.click();
+                const studio = document.getElementById('studioSection');
+                if (studio) {
+                    studio.scrollIntoView({ behavior: 'smooth' });
+                }
+                toast(`Applied ${targetBtn.textContent} preset to Studio!`, 'success');
+            }
+        });
+    });
+
+    // 3. FAQ Accordion
+    document.querySelectorAll('.faq-item').forEach(item => {
+        const questionBtn = item.querySelector('.faq-question');
+        if (questionBtn) {
+            questionBtn.addEventListener('click', () => {
+                const wasActive = item.classList.contains('active');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                if (!wasActive) item.classList.add('active');
+            });
+        }
+    });
+
+    // 4. Privacy Policy & Terms of Service Modals (Green Flags)
+    const legalModal = document.getElementById('legalModal');
+    const legalModalTitle = document.getElementById('legalModalTitle');
+    const legalModalBody = document.getElementById('legalModalBody');
+    const closeLegalModalBtn = document.getElementById('closeLegalModalBtn');
+    const dismissLegalBtn = document.getElementById('dismissLegalBtn');
+    const openPrivacyBtn = document.getElementById('openPrivacyBtn');
+    const openTermsBtn = document.getElementById('openTermsBtn');
+
+    if (openPrivacyBtn) {
+        openPrivacyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!legalModal) return;
+            legalModalTitle.textContent = 'Privacy Policy';
+            legalModalBody.innerHTML = `
+                <h4>100% Client-Side Video Processing</h4>
+                <p>Captioniq runs entirely within your web browser using HTML5 Canvas, WebCodecs, and WebAssembly. Your videos are processed in local memory and are never uploaded to any remote server or third-party cloud storage.</p>
+                <h4>Zero Data Tracking</h4>
+                <p>We do not collect personal analytics, telemetry, or user identifiers. Any API keys provided for cloud transcription are stored exclusively in your browser's private localStorage and are only transmitted to the API endpoint you configure.</p>
+                <h4>File Integrity &amp; Security</h4>
+                <p>Exports are encoded deterministically into standard ISO/IEC 14496-14 FastStart MP4 files directly on your machine. You retain 100% ownership and copyright of all imported and exported media.</p>
+            `;
+            legalModal.classList.remove('hidden');
+        });
+    }
+
+    if (openTermsBtn) {
+        openTermsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!legalModal) return;
+            legalModalTitle.textContent = 'Terms of Service';
+            legalModalBody.innerHTML = `
+                <h4>Usage &amp; Licensing</h4>
+                <p>Captioniq is provided free of charge for personal and commercial video production. You may use this tool to burn, style, and export subtitles on any video footage you own or hold the legal right to edit.</p>
+                <h4>Standard Compliance</h4>
+                <p>Videos exported through Captioniq comply with standard ISO MP4 specifications and are designed for native compatibility with WhatsApp, iOS, Android, QuickTime, and major social video platforms.</p>
+                <h4>Limitation of Liability</h4>
+                <p>Captioniq is provided "as is" without warranty of any kind. All processing occurs locally on your hardware.</p>
+            `;
+            legalModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeLegalModalBtn) closeLegalModalBtn.addEventListener('click', () => legalModal.classList.add('hidden'));
+    if (dismissLegalBtn) dismissLegalBtn.addEventListener('click', () => legalModal.classList.add('hidden'));
+    if (legalModal) {
+        legalModal.addEventListener('click', (e) => {
+            if (e.target === legalModal) legalModal.classList.add('hidden');
+        });
+    }
+
+})();

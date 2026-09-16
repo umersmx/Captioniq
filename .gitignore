@@ -1,0 +1,14 @@
+# System & Editor Files
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Node / Package artifacts
+node_modules/
+npm-debug.log*
+
+# Scratch / Temp exports
+*.tmp
+*.temp
