@@ -1,10 +1,17 @@
-# Captioniq — Studio Subtitle Editor & 60 FPS Burner
+# Captioniq - Studio Subtitle Editor & 60 FPS Burner
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-captioniq.vercel.app-0ea5e9?style=for-the-badge&logo=vercel&logoColor=white)](https://captioniq.vercel.app/)
+[![Export](https://img.shields.io/badge/Export-60%20FPS%20%2F%204K-22c55e?style=for-the-badge)](https://captioniq.vercel.app/)
+[![WhatsApp Compatible](https://img.shields.io/badge/Container-FastStart%20ISO%20MP4-2563eb?style=for-the-badge)](https://captioniq.vercel.app/)
+[![Privacy](https://img.shields.io/badge/Privacy-100%25%20On--Device-10b981?style=for-the-badge)](https://captioniq.vercel.app/)
 
 > **Burn beautiful, viral subtitles into video at a constant 60 FPS with zero dropped frames. 100% in-browser, privacy-first, and natively compatible with WhatsApp, iOS, and Instagram.**
 
+🌐 **Live Application:** [https://captioniq.vercel.app/](https://captioniq.vercel.app/)
+
 ---
 
-## ⚡ The Problems Captioniq Solves
+## The Problems Captioniq Solves
 
 ### 1. WhatsApp "Unusual Format or Corrupted" Error
 Traditional browser export tools rely on the native `MediaRecorder` API, which streams fragmented MP4 files (`fMP4`) made of sequential `moof` and `mdat` chunks without a top-level duration header. WhatsApp's security scanner strictly flags fragmented streams as potentially corrupted or dangerous. 
@@ -18,43 +25,47 @@ Standard tools capture a live `<canvas>` stream at 1x real-time playback. When c
 
 ---
 
-## ✨ Features
+## Features
 
-- **🔥 Trending Creator Presets:** One-click presets modeled after top creators:
+- **Trending Creator Presets:** One-click presets modeled after top creators:
   - **Hormozi Viral:** High-contrast bold yellow fill with thick black stroke and uppercase impact.
   - **MrBeast Punch:** Ultra-bold cyan/yellow typography with heavy contrast borders.
   - **TikTok & Reels:** Centered punchy narrative text with subtle drop shadow.
   - **Ali Abdaal Clean:** Minimalist modern typography with frosted glass background capsule.
   - **Cinematic 2.35:1:** Elegant serif typography with expanded letter spacing.
   - **Cyberpunk Neon:** Electric cyan/magenta glow for gaming and tech content.
-- **🎙️ Speech-to-Text & Auto-Transcription:**
+- **Speech-to-Text & Auto-Transcription:**
   - In-browser speech engine powered by WebAssembly (100% private, zero data leaves machine).
-  - Fast cloud Whisper integration (Groq / OpenAI) transcribing long videos in 1–2 seconds.
-- **🇮🇳 Hindi & Roman Hindish Transliteration:**
+  - Fast cloud Whisper integration (Groq / OpenAI) transcribing long videos in 1-2 seconds.
+- **Hindi & Roman Hindish Transliteration:**
   - Choose between authentic **Devanagari Hindi** (`आप कैसे हैं`) and popular **Roman Hindish** (`Aap kaise hain`).
-- **🎨 Comprehensive Customization Panel:**
+- **Comprehensive Customization Panel:**
   - 14+ curated Google Fonts (Inter, Oswald, Bebas Neue, Montserrat, Poppins, Playfair Display, etc.).
   - Micro-adjustable font size, stroke outline width, text shadow blur, and padding.
-  - Vertical (5%–95%) and Horizontal (5%–95%) positioning with 1:1 viewport export matching.
-- **🔒 100% Client-Side Privacy:**
+  - Vertical (5%-95%) and Horizontal (5%-95%) positioning with 1:1 viewport export matching.
+- **100% Client-Side Privacy:**
   - All video frames, audio tracks, and subtitles are processed entirely in local memory.
   - Zero server queues, zero subscriptions, zero watermarks.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Tech Stack & Architecture
 
 - **Core:** Modern Vanilla JavaScript (ES2024), Semantic HTML5, CSS Grid & Flexbox
 - **Video Decoding & Encoding:** [WebCodecs API](`VideoEncoder`, `VideoFrame`)
 - **Container Muxing:** [mp4-muxer](`Mp4Muxer`) FastStart in-memory ISO/IEC 14496-14 writer
 - **Audio Extraction & Sync:** Web Audio API (`AudioContext`, `decodeAudioData`) with standard AAC (`mp4a.40.2`) encoding
 - **Speech Recognition:** Whisper WebAssembly & Groq Whisper Large V3
+- **Hosting:** [Vercel](https://captioniq.vercel.app/)
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Live Demo & Getting Started
 
-Clone the repository and run any local HTTP server:
+Experience the live app directly in your browser:
+👉 **[https://captioniq.vercel.app/](https://captioniq.vercel.app/)**
+
+Or run locally:
 
 ```bash
 # Clone the repository
@@ -73,6 +84,6 @@ Open your browser at `http://127.0.0.1:5500` and start subtitling!
 
 ---
 
-## 📄 License
+## License
 
 MIT License © 2026 Muhammad Umer Farooq. Free for personal and commercial video production.
