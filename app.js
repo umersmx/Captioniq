@@ -52,9 +52,6 @@
     const engineTabs         = $$('.engine-tab');
     const tabContentLocal    = $('#tabContentLocal');
     const tabContentCloud    = $('#tabContentCloud');
-    const cloudProvider      = $('#cloudProvider');
-    const cloudApiKey        = $('#cloudApiKey');
-    const apiKeyStatus       = $('#apiKeyStatus');
     const transcribeLanguage = $('#transcribeLanguage');
     const captionPacing      = $('#captionPacing');
 
@@ -103,6 +100,56 @@
     const exportBarFill    = $('#exportBarFill');
     const exportLabel      = $('#exportLabel');
     const toastContainer   = $('#toastContainer');
+
+    // ── Theme Manager (Primary Theme: White / Light) ─────────────────
+    const THEME_STORAGE_KEY = 'captioniq_theme';
+    const themeToggleBtn = $('#themeToggleBtn');
+    const themeToggleLabel = $('#themeToggleLabel');
+    const panelThemeToggleBtn = $('#panelThemeToggleBtn');
+
+    function applyTheme(theme) {
+        const targetTheme = (theme === 'dark') ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', targetTheme);
+        if (document.body) {
+            document.body.setAttribute('data-theme', targetTheme);
+        }
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, targetTheme);
+        } catch (e) {
+            console.warn('Could not save theme preference:', e);
+        }
+
+        const isLight = (targetTheme === 'light');
+        if (themeToggleLabel) {
+            themeToggleLabel.textContent = isLight ? 'Dark Mode' : 'Light Mode';
+        }
+        if (themeToggleBtn) {
+            themeToggleBtn.setAttribute('title', isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+            themeToggleBtn.setAttribute('aria-label', isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+        }
+        if (panelThemeToggleBtn) {
+            panelThemeToggleBtn.setAttribute('title', isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+            panelThemeToggleBtn.setAttribute('aria-label', isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+        }
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = (current === 'light') ? 'dark' : 'light';
+        applyTheme(next);
+        toast(`Switched to ${next === 'light' ? 'Light' : 'Dark'} mode`, 'info');
+    }
+
+    // Default primary theme is light (white)
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+    applyTheme(savedTheme);
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
+    if (panelThemeToggleBtn) {
+        panelThemeToggleBtn.addEventListener('click', toggleTheme);
+    }
 
     // ── State ───────────────────────────────────────────────────────
     // Permanent Built-in Groq Whisper Large V3 API Key (Global across all projects)

@@ -1,3 +1,80 @@
+:root, [data-theme="light"] {
+    /* Primary Theme: White / Clean Studio Mode */
+    --bg-primary:    #f8fafc;
+    --bg-secondary:  #ffffff;
+    --bg-card:       #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --bg-input:      #f1f5f9;
+    --bg-input-hover:#e2e8f0;
+    --bg-header:     rgba(255, 255, 255, 0.88);
+    --bg-modal:      #ffffff;
+    --bg-backdrop:   rgba(15, 23, 42, 0.55);
+
+    --text-primary:  #0f172a;
+    --text-secondary:#334155;
+    --text-muted:    #64748b;
+
+    --accent:        #2563eb;
+    --accent-soft:   rgba(37, 99, 235, 0.08);
+    --accent-glow:   rgba(37, 99, 235, 0.22);
+    --accent-2:      #0284c7;
+
+    --border:        #e2e8f0;
+    --border-active: rgba(37, 99, 235, 0.55);
+
+    --success:       #16a34a;
+    --warning:       #d97706;
+    --danger:        #dc2626;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 8px 30px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
+    --shadow-glow: 0 0 35px var(--accent-glow);
+
+    --transition-fast: 150ms ease;
+    --transition-med:  250ms ease;
+    --transition-slow: 400ms ease;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme */
+    --bg-primary:    #0a0a0f;
+    --bg-secondary:  #12121a;
+    --bg-card:       rgba(18, 18, 30, 0.65);
+    --bg-card-hover: rgba(24, 24, 42, 0.75);
+    --bg-input:      rgba(255, 255, 255, 0.04);
+    --bg-input-hover:rgba(255, 255, 255, 0.07);
+    --bg-header:     rgba(10, 10, 15, 0.75);
+    --bg-modal:      #10101a;
+    --bg-backdrop:   rgba(5, 5, 10, 0.78);
+
+    --text-primary:  #f0f0f5;
+    --text-secondary:#9494aa;
+    --text-muted:    #5e5e72;
+
+    --accent:        #2563eb;
+    --accent-soft:   rgba(37, 99, 235, 0.15);
+    --accent-glow:   rgba(37, 99, 235, 0.35);
+    --accent-2:      #0ea5e9;
+
+    --border:        rgba(255, 255, 255, 0.06);
+    --border-active: rgba(37, 99, 235, 0.4);
+
+    --success:       #4ade80;
+    --warning:       #facc15;
+    --danger:        #f87171;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+    --shadow-md: 0 8px 32px rgba(0,0,0,0.35);
+    --shadow-lg: 0 16px 64px rgba(0,0,0,0.5);
+    --shadow-glow: 0 0 40px var(--accent-glow);
+}
+
 /* ===================================================================
    Captioniq - Subtitle Applier  ·  Global Styles
    =================================================================== */
@@ -2001,6 +2078,66 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all var(--transition-fast);
+}
+.theme-toggle-btn:hover {
+    border-color: var(--border-active);
+    background: var(--bg-card-hover);
+}
+.theme-toggle-btn.mini {
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+.theme-icon-track {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.theme-svg {
+    position: absolute;
+    inset: 0;
+    transition: opacity var(--transition-med), transform var(--transition-med);
+}
+/* Light Mode: Moon icon visible, Sun icon hidden */
+.sun-svg {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
+}
+.moon-svg {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    color: var(--text-secondary);
+}
+
+/* Dark Mode: Sun icon visible, Moon icon hidden */
+[data-theme="dark"] .sun-svg {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    color: #facc15;
+}
+[data-theme="dark"] .moon-svg {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.4);
 }
 
 .btn-studio-nav {
