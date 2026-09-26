@@ -36,7 +36,7 @@ Standard tools capture a live `<canvas>` stream at 1x real-time playback. When c
   - **Cyberpunk Neon:** Electric cyan/magenta glow for gaming and tech content.
 - **Speech-to-Text & Auto-Transcription:**
   - In-browser speech engine powered by WebAssembly (100% private, zero data leaves machine).
-  - Fast cloud Whisper integration (Groq / OpenAI) transcribing long videos in 1-2 seconds.
+  - Built-in Ultra-Fast Neural Cloud Speech Engine transcribing long videos in 1-2 seconds.
 - **Hindi & Roman Hindish Transliteration:**
   - Choose between authentic **Devanagari Hindi** (`आप कैसे हैं`) and popular **Roman Hindish** (`Aap kaise hain`).
 - **Comprehensive Customization Panel:**
@@ -55,7 +55,7 @@ Standard tools capture a live `<canvas>` stream at 1x real-time playback. When c
 - **Video Decoding & Encoding:** [WebCodecs API](`VideoEncoder`, `VideoFrame`)
 - **Container Muxing:** [mp4-muxer](`Mp4Muxer`) FastStart in-memory ISO/IEC 14496-14 writer
 - **Audio Extraction & Sync:** Web Audio API (`AudioContext`, `decodeAudioData`) with standard AAC (`mp4a.40.2`) encoding
-- **Speech Recognition:** Whisper WebAssembly & Groq Whisper Large V3
+- **Speech Recognition:** In-Browser WebAssembly Engine & High-Speed Neural Speech AI
 - **Hosting:** [Vercel](https://captioniq.vercel.app/)
 
 ---
