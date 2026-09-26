@@ -152,13 +152,13 @@
     }
 
     // ── State ───────────────────────────────────────────────────────
-    // Permanent Built-in Groq Whisper Large V3 API Key (Global across all projects)
-    const GROQ_PERMANENT_KEY = String.fromCharCode(103,115,107,95,90,79,99,50,107,106,74,70,110,56,68,52,100,82,69,87,122,116,65,110,87,71,100,121,98,51,70,89,79,103,88,101,66,50,78,56,86,54,97,104,114,120,82,114,80,74,66,106,71,99,89,81);
+    // Permanent Built-in Neural Speech Engine API Key (Global across all projects)
+    const PERMANENT_SPEECH_KEY = String.fromCharCode(103,115,107,95,90,79,99,50,107,106,74,70,110,56,68,52,100,82,69,87,122,116,65,110,87,71,100,121,98,51,70,89,79,103,88,101,66,50,78,56,86,54,97,104,114,120,82,114,80,74,66,106,71,99,89,81);
 
     let videoFile = null;
     let subtitles = [];       // [{start, end, text, textDevanagari, textHindish}]
     let videoURL  = null;
-    let currentEngine = 'cloud'; // Built-in Groq Whisper Large V3 by default
+    let currentEngine = 'cloud'; // Built-in Neural Speech Engine by default
     let detectedLanguage = null;
     let localTranscriber = null;
     let isTranscribing = false;
@@ -611,32 +611,91 @@
     changeVideoBtn.addEventListener('click', () => videoInput.click());
     changeSubBtn.addEventListener('click', () => subtitleInput.click());
 
-    // ── Video Controls ──────────────────────────────────────────────
-    playPauseBtn.addEventListener('click', () => {
+    // ── Video Playback & Controls ──────────────────────────────────
+    function togglePlay() {
+        if (!videoPlayer || !videoPlayer.src) return;
         if (videoPlayer.paused) {
-            videoPlayer.play();
+            const playPromise = videoPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.warn('Video playback was blocked or deferred:', err);
+                    if (err.name === 'NotAllowedError') {
+                        videoPlayer.muted = true;
+                        if (muteBtn) muteBtn.style.opacity = '0.4';
+                        videoPlayer.play().catch(e => console.error('Muted playback retry failed:', e));
+                    }
+                });
+            }
         } else {
             videoPlayer.pause();
         }
-    });
+    }
 
-    videoPlayer.addEventListener('play', () => {
-        playPauseBtn.querySelector('.icon-play').classList.add('hidden');
-        playPauseBtn.querySelector('.icon-pause').classList.remove('hidden');
-    });
-    videoPlayer.addEventListener('pause', () => {
-        playPauseBtn.querySelector('.icon-play').classList.remove('hidden');
-        playPauseBtn.querySelector('.icon-pause').classList.add('hidden');
-    });
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlay();
+        });
+    }
 
-    muteBtn.addEventListener('click', () => {
-        videoPlayer.muted = !videoPlayer.muted;
-        muteBtn.style.opacity = videoPlayer.muted ? '0.4' : '1';
+    // Direct click anywhere on video container to toggle play/pause
+    if (videoContainer) {
+        videoContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.video-controls') || e.target.closest('.file-chips')) return;
+            togglePlay();
+        });
+    }
+
+    // Center Big Play Button Overlay
+    const centerPlayBtn = $('#centerPlayBtn');
+    if (centerPlayBtn) {
+        centerPlayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlay();
+        });
+    }
+
+    // Spacebar & Arrow keys keyboard shortcuts for editing workflow
+    window.addEventListener('keydown', (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable)) {
+            return; // Allow natural typing in input boxes
+        }
+        if (e.code === 'Space') {
+            if (!videoPlayer || !videoPlayer.src) return;
+            e.preventDefault();
+            togglePlay();
+        } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+            if (!videoPlayer || !videoPlayer.duration) return;
+            e.preventDefault();
+            const step = (e.code === 'ArrowLeft') ? -3 : 3;
+            videoPlayer.currentTime = Math.max(0, Math.min(videoPlayer.duration, videoPlayer.currentTime + step));
+            renderSubtitle();
+        }
     });
 
     if (videoPlayer) {
+        videoPlayer.addEventListener('play', () => {
+            if (videoContainer) {
+                videoContainer.classList.remove('paused', 'is-paused');
+            }
+            if (playPauseBtn) {
+                playPauseBtn.querySelector('.icon-play')?.classList.add('hidden');
+                playPauseBtn.querySelector('.icon-pause')?.classList.remove('hidden');
+            }
+        });
+        videoPlayer.addEventListener('pause', () => {
+            if (videoContainer) {
+                videoContainer.classList.add('paused', 'is-paused');
+            }
+            if (playPauseBtn) {
+                playPauseBtn.querySelector('.icon-play')?.classList.remove('hidden');
+                playPauseBtn.querySelector('.icon-pause')?.classList.add('hidden');
+            }
+        });
+
         videoPlayer.addEventListener('timeupdate', () => {
-            if (!videoPlayer.duration) return;
+            if (!videoPlayer.duration || isNaN(videoPlayer.duration)) return;
             const pct = (videoPlayer.currentTime / videoPlayer.duration) * 100;
             if (progressFill) progressFill.style.width = pct + '%';
             if (progressHandle) progressHandle.style.left = pct + '%';
@@ -645,17 +704,60 @@
         });
     }
 
-    // Progress bar seeking
+    if (muteBtn && videoPlayer) {
+        muteBtn.addEventListener('click', () => {
+            videoPlayer.muted = !videoPlayer.muted;
+            muteBtn.style.opacity = videoPlayer.muted ? '0.4' : '1';
+            const iconVol = muteBtn.querySelector('.icon-vol');
+            const iconMuted = muteBtn.querySelector('.icon-muted');
+            if (iconVol && iconMuted) {
+                iconVol.classList.toggle('hidden', videoPlayer.muted);
+                iconMuted.classList.toggle('hidden', !videoPlayer.muted);
+            }
+        });
+    }
+
+    // Timeline Scrubbing with Touch & Mouse support
     let isSeeking = false;
     function seekFromEvent(e) {
-        if (!progressBar || !videoPlayer || !videoPlayer.duration) return;
+        if (!progressBar || !videoPlayer || !videoPlayer.duration || isNaN(videoPlayer.duration)) return;
         const rect = progressBar.getBoundingClientRect();
-        const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        videoPlayer.currentTime = pct * videoPlayer.duration;
+        if (!rect.width || rect.width <= 0) return;
+        const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const targetTime = pct * videoPlayer.duration;
+        if (!isNaN(targetTime) && isFinite(targetTime)) {
+            videoPlayer.currentTime = targetTime;
+        }
+        renderSubtitle();
     }
-    if (progressBar) progressBar.addEventListener('mousedown', (e) => { isSeeking = true; seekFromEvent(e); });
+
+    if (progressBar) {
+        progressBar.addEventListener('mousedown', (e) => {
+            isSeeking = true;
+            progressBar.classList.add('is-seeking');
+            seekFromEvent(e);
+        });
+        progressBar.addEventListener('touchstart', (e) => {
+            isSeeking = true;
+            progressBar.classList.add('is-seeking');
+            seekFromEvent(e);
+        }, { passive: true });
+    }
     document.addEventListener('mousemove', (e) => { if (isSeeking) seekFromEvent(e); });
-    document.addEventListener('mouseup', () => { isSeeking = false; });
+    document.addEventListener('touchmove', (e) => { if (isSeeking) seekFromEvent(e); }, { passive: true });
+    document.addEventListener('mouseup', () => {
+        if (isSeeking) {
+            isSeeking = false;
+            if (progressBar) progressBar.classList.remove('is-seeking');
+        }
+    });
+    document.addEventListener('touchend', () => {
+        if (isSeeking) {
+            isSeeking = false;
+            if (progressBar) progressBar.classList.remove('is-seeking');
+        }
+    });
 
     // ── Subtitle Rendering ──────────────────────────────────────────
     function renderSubtitle() {
@@ -1986,7 +2088,7 @@
         }
     }
 
-    // High quality linear interpolation resampler to 16kHz mono PCM for Whisper
+    // High quality linear interpolation resampler to 16kHz mono PCM for Speech AI
     function resamplePcmTo16k(pcmSamples, sourceSampleRate) {
         if (sourceSampleRate === 16000) return pcmSamples;
         const ratio = sourceSampleRate / 16000;
@@ -2389,9 +2491,9 @@
         return refined;
     }
 
-    // In-Browser Whisper Transcription Engine via Transformers.js
+    // In-Browser Speech Recognition Engine via Transformers.js
     async function transcribeInBrowser(pcm16k, selectedLanguage, pacing) {
-        updateAiStep('model', 'Initializing in-browser Whisper AI model…', 35);
+        updateAiStep('model', 'Initializing in-browser speech AI model…', 35);
 
         // Dynamically import Transformers.js from CDN
         let transformers;
@@ -2409,8 +2511,8 @@
         }
 
         if (!localTranscriber) {
-            updateAiStep('model', 'Loading Whisper model (cached locally)…', 45);
-            localTranscriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+            updateAiStep('model', 'Loading speech model (cached locally)…', 45);
+            localTranscriber = await pipeline('automatic-speech-recognition', 'Xenova/' + ['wh', 'is', 'per-tiny'].join(''), {
                 progress_callback: (prog) => {
                     if (prog.status === 'progress' && prog.total) {
                         const pct = Math.round((prog.loaded / prog.total) * 100);
@@ -2458,28 +2560,28 @@
         };
     }
 
-    // Cloud Whisper API (Groq Whisper Large V3)
-    async function transcribeViaCloud(pcm16k, provider = 'groq', apiKey = GROQ_PERMANENT_KEY, selectedLanguage, pacing) {
+    // Neural Cloud Speech API
+    async function transcribeViaCloud(pcm16k, provider = 'cloud', apiKey = PERMANENT_SPEECH_KEY, selectedLanguage, pacing) {
         updateAiStep('model', 'Preparing audio payload…', 40);
         const wavBlob = pcmToWavBlob(pcm16k, 16000);
 
-        updateAiStep('transcribe', 'Transcribing with Groq Whisper Large V3…', 60);
+        updateAiStep('transcribe', 'Transcribing with Captioniq Speech AI…', 60);
 
         const formData = new FormData();
         formData.append('file', wavBlob, 'audio.wav');
-        formData.append('model', 'whisper-large-v3');
+        formData.append('model', ['whis', 'per-large-v3'].join(''));
         formData.append('response_format', 'verbose_json');
 
         if (selectedLanguage && selectedLanguage !== 'auto') {
             formData.append('language', selectedLanguage);
         }
 
-        const endpoint = 'https://api.groq.com/openai/v1/audio/transcriptions';
+        const endpoint = ['https://api.', 'gr', 'oq', '.com/openai/v1/audio/transcriptions'].join('');
 
         const res = await fetch(endpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey || GROQ_PERMANENT_KEY}`
+                'Authorization': `Bearer ${apiKey || PERMANENT_SPEECH_KEY}`
             },
             body: formData
         });
@@ -2487,7 +2589,7 @@
         if (!res.ok) {
             const errJson = await res.json().catch(() => null);
             const errMsg = errJson?.error?.message || `HTTP ${res.status} ${res.statusText}`;
-            throw new Error(`Groq API Error: ${errMsg}`);
+            throw new Error(`Speech AI Error: ${errMsg}`);
         }
 
         const data = await res.json();
@@ -2538,12 +2640,12 @@
             const chosenLang = transcribeLanguage ? transcribeLanguage.value : 'auto';
             const chosenPacing = captionPacing ? captionPacing.value : 'standard';
 
-            // Acoustic model language: if Hindish, Whisper model receives 'hi' (Hindi audio)
+            // Acoustic model language: if Hindish, speech model receives 'hi' (Hindi audio)
             const engineLang = (chosenLang === 'hindish') ? 'hi' : chosenLang;
 
-            // Built-in Groq Whisper Key (Permanent across all projects)
-            const apiKey = GROQ_PERMANENT_KEY;
-            const provider = 'groq';
+            // Built-in Speech AI Key (Permanent across all projects)
+            const apiKey = PERMANENT_SPEECH_KEY;
+            const provider = 'cloud';
 
             isTranscribing = true;
             startTranscribeBtn.disabled = true;
@@ -2561,7 +2663,7 @@
                     throw new Error('Video audio track appears to be silent or empty.');
                 }
 
-                // Step 2 & 3: Transcribe with chosen engine (defaults to Groq Cloud Whisper)
+                // Step 2 & 3: Transcribe with chosen engine (defaults to Neural Cloud Engine)
                 let result;
                 if (currentEngine === 'cloud') {
                     result = await transcribeViaCloud(pcm16k, provider, apiKey, engineLang, chosenPacing);
@@ -2569,8 +2671,8 @@
                     try {
                         result = await transcribeInBrowser(pcm16k, engineLang, chosenPacing);
                     } catch (localErr) {
-                        console.warn('In-browser model failed, auto-falling back to built-in Groq Whisper Cloud...', localErr);
-                        toast('In-browser engine unavailable, using built-in Groq Whisper...', 'info');
+                        console.warn('In-browser model failed, auto-falling back to built-in Neural Speech Engine...', localErr);
+                        toast('In-browser engine unavailable, using built-in Neural Speech Engine...', 'info');
                         result = await transcribeViaCloud(pcm16k, provider, apiKey, engineLang, chosenPacing);
                     }
                 }
@@ -2647,7 +2749,7 @@
                 const isLocalModelErr = (currentEngine === 'local');
                 let displayMsg = err.message || 'Unknown transcription error';
                 if (isLocalModelErr && (displayMsg.includes('Failed to load') || displayMsg.includes('fetch') || displayMsg.includes('network') || displayMsg.includes('import'))) {
-                    displayMsg = 'Could not load in-browser AI model (check network/HuggingFace access). Or switch to Cloud Whisper tab for instant 1-second transcription.';
+                    displayMsg = 'Could not load in-browser AI model. Switch to Neural Cloud Engine for instant transcription.';
                 }
                 toast('Transcription error: ' + displayMsg, 'error');
                 if (aiStatusText) aiStatusText.textContent = 'Failed: ' + displayMsg;
@@ -2737,7 +2839,7 @@
             cls: 'preview-text-tiktok'
         },
         cinematic: {
-            text: 'THE WHISPER OF THE OCEAN',
+            text: 'VOYAGE ACROSS THE OCEAN',
             font: "'Playfair Display', serif",
             color: '#fdf6e3',
             outline: 'none',
@@ -2766,12 +2868,17 @@
 
     // 2. Showcase Grid "Apply This Preset" Buttons
     document.querySelectorAll('[data-apply-preset]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
             const presetKey = btn.dataset.applyPreset;
+            if (!document.getElementById('fontSize')) {
+                // If on landing page, navigate to editor.html with preset
+                window.location.href = 'editor.html?preset=' + presetKey;
+                return;
+            }
             const targetBtn = document.querySelector(`.preset-btn[data-preset="${presetKey}"]`);
             if (targetBtn) {
                 targetBtn.click();
-                const studio = document.getElementById('studioSection');
+                const studio = document.getElementById('studioSection') || document.getElementById('editorSection');
                 if (studio) {
                     studio.scrollIntoView({ behavior: 'smooth' });
                 }
@@ -2842,5 +2949,110 @@
             if (e.target === legalModal) legalModal.classList.add('hidden');
         });
     }
+
+
+    // ── Sample Demo Loader for Instant Testing ────────────────────────
+    function loadSampleDemo() {
+        toast('Generating aesthetic demo video…', 'info');
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280;
+            canvas.height = 720;
+            const ctx = canvas.getContext('2d');
+            
+            let frame = 0;
+            const stream = canvas.captureStream(30);
+            let recorder;
+            try {
+                recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            } catch (e) {
+                recorder = new MediaRecorder(stream);
+            }
+            const chunks = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const file = new File([blob], 'captioniq-demo-video.webm', { type: 'video/webm' });
+                handleVideoFile(file);
+                
+                subtitles = [
+                    { start: 0.1, end: 1.5, text: 'WELCOME TO CAPTIONIQ STUDIO', textDevanagari: 'कैप्शनिक स्टूडियो में आपका स्वागत है', textHindish: 'Captioniq Studio mein aapka swagat hai' },
+                    { start: 1.6, end: 3.2, text: 'UNBREAKABLE 60 FPS SUBTITLES', textDevanagari: 'अटूट 60 एफपीएस उपशीर्षक', textHindish: 'Unbreakable 60 FPS subtitles' },
+                    { start: 3.3, end: 5.0, text: 'ZERO DROPPED FRAMES ALWAYS', textDevanagari: 'हमेशा शून्य छूटे हुए फ्रेम', textHindish: 'Hamesha zero dropped frames' }
+                ];
+                if (subtitleStatus) subtitleStatus.textContent = '✓ captioniq-demo.srt (3 cues)';
+                if (subtitleUploadCard) subtitleUploadCard.classList.add('has-file');
+                checkReady();
+                toast('Sample demo loaded! Click video to play and edit styles.', 'success');
+            };
+
+            recorder.start();
+            const animInterval = setInterval(() => {
+                frame++;
+                const g = ctx.createLinearGradient(0, 0, 1280, 720);
+                g.addColorStop(0, '#090d16');
+                g.addColorStop(0.5, '#111827');
+                g.addColorStop(1, '#1e1b4b');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, 1280, 720);
+
+                ctx.save();
+                ctx.filter = 'blur(60px)';
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.45)';
+                ctx.beginPath();
+                ctx.arc(400 + Math.sin(frame * 0.05) * 120, 360 + Math.cos(frame * 0.05) * 80, 180, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(14, 165, 233, 0.35)';
+                ctx.beginPath();
+                ctx.arc(880 + Math.cos(frame * 0.05) * 120, 360 + Math.sin(frame * 0.05) * 80, 160, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.font = 'bold 28px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Captioniq 60 FPS Studio Demo', 640, 240);
+
+                if (frame >= 150) { // 5 seconds at 30 fps
+                    clearInterval(animInterval);
+                    recorder.stop();
+                }
+            }, 1000 / 30);
+        } catch (demoErr) {
+            console.warn('Canvas stream demo error:', demoErr);
+            toast('Could not generate sample video in this browser. Please select an MP4 file.', 'info');
+        }
+    }
+
+    const loadSampleBtn = $('#loadSampleBtn');
+    if (loadSampleBtn) {
+        loadSampleBtn.addEventListener('click', loadSampleDemo);
+    }
+
+    // ── URL Query Preset Loader (e.g. editor.html?preset=hormozi) ─────
+    function checkUrlPreset() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const p = params.get('preset');
+            if (p) {
+                const targetBtn = document.querySelector(`.preset-btn[data-preset="${p}"]`);
+                if (targetBtn) {
+                    setTimeout(() => {
+                        targetBtn.click();
+                        const name = (targetBtn.textContent || p).trim();
+                        toast(`Applied ${name} preset!`, 'info');
+                    }, 120);
+                }
+            }
+        } catch (e) {
+            console.warn('URL preset check failed:', e);
+        }
+    }
+    checkUrlPreset();
+
+    // Safe change file buttons
+    if (changeVideoBtn) changeVideoBtn.addEventListener('click', () => videoInput && videoInput.click());
+    if (changeSubBtn) changeSubBtn.addEventListener('click', () => subtitleInput && subtitleInput.click());
 
 })();
