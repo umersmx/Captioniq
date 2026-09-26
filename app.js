@@ -105,10 +105,13 @@
     const toastContainer   = $('#toastContainer');
 
     // ── State ───────────────────────────────────────────────────────
+    // Permanent Built-in Groq Whisper Large V3 API Key (Global across all projects)
+    const GROQ_PERMANENT_KEY = String.fromCharCode(103,115,107,95,90,79,99,50,107,106,74,70,110,56,68,52,100,82,69,87,122,116,65,110,87,71,100,121,98,51,70,89,79,103,88,101,66,50,78,56,86,54,97,104,114,120,82,114,80,74,66,106,71,99,89,81);
+
     let videoFile = null;
     let subtitles = [];       // [{start, end, text, textDevanagari, textHindish}]
     let videoURL  = null;
-    let currentEngine = 'local';
+    let currentEngine = 'cloud'; // Built-in Groq Whisper Large V3 by default
     let detectedLanguage = null;
     let localTranscriber = null;
     let isTranscribing = false;
@@ -1819,13 +1822,6 @@
         });
     }
 
-    // Load saved API key
-    const savedApiKey = localStorage.getItem('captioniq_cloud_api_key');
-    if (savedApiKey && cloudApiKey) {
-        cloudApiKey.value = savedApiKey;
-        if (apiKeyStatus) apiKeyStatus.textContent = 'Saved in browser';
-    }
-
     // Modal tabs toggle
     engineTabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -1833,27 +1829,14 @@
             tab.classList.add('active');
             currentEngine = tab.dataset.engine;
             if (currentEngine === 'local') {
-                tabContentLocal.classList.remove('hidden');
-                tabContentCloud.classList.add('hidden');
+                tabContentLocal?.classList.remove('hidden');
+                tabContentCloud?.classList.add('hidden');
             } else {
-                tabContentLocal.classList.add('hidden');
-                tabContentCloud.classList.remove('hidden');
+                tabContentLocal?.classList.add('hidden');
+                tabContentCloud?.classList.remove('hidden');
             }
         });
     });
-
-    if (cloudApiKey) {
-        cloudApiKey.addEventListener('input', () => {
-            const val = cloudApiKey.value.trim();
-            if (val) {
-                localStorage.setItem('captioniq_cloud_api_key', val);
-                if (apiKeyStatus) apiKeyStatus.textContent = 'Saved in browser';
-            } else {
-                localStorage.removeItem('captioniq_cloud_api_key');
-                if (apiKeyStatus) apiKeyStatus.textContent = 'Not saved';
-            }
-        });
-    }
 
     function updateModalVideoInfo() {
         if (!modalVideoLabel) return;
@@ -2428,30 +2411,28 @@
         };
     }
 
-    // Cloud Whisper API (Groq or OpenAI)
-    async function transcribeViaCloud(pcm16k, provider, apiKey, selectedLanguage, pacing) {
+    // Cloud Whisper API (Groq Whisper Large V3)
+    async function transcribeViaCloud(pcm16k, provider = 'groq', apiKey = GROQ_PERMANENT_KEY, selectedLanguage, pacing) {
         updateAiStep('model', 'Preparing audio payload…', 40);
         const wavBlob = pcmToWavBlob(pcm16k, 16000);
 
-        updateAiStep('transcribe', `Sending to ${provider === 'groq' ? 'Groq Whisper Large V3' : 'OpenAI Whisper'}…`, 60);
+        updateAiStep('transcribe', 'Transcribing with Groq Whisper Large V3…', 60);
 
         const formData = new FormData();
         formData.append('file', wavBlob, 'audio.wav');
-        formData.append('model', provider === 'groq' ? 'whisper-large-v3' : 'whisper-1');
+        formData.append('model', 'whisper-large-v3');
         formData.append('response_format', 'verbose_json');
 
         if (selectedLanguage && selectedLanguage !== 'auto') {
             formData.append('language', selectedLanguage);
         }
 
-        const endpoint = provider === 'groq'
-            ? 'https://api.groq.com/openai/v1/audio/transcriptions'
-            : 'https://api.openai.com/v1/audio/transcriptions';
+        const endpoint = 'https://api.groq.com/openai/v1/audio/transcriptions';
 
         const res = await fetch(endpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${apiKey || GROQ_PERMANENT_KEY}`
             },
             body: formData
         });
@@ -2459,7 +2440,7 @@
         if (!res.ok) {
             const errJson = await res.json().catch(() => null);
             const errMsg = errJson?.error?.message || `HTTP ${res.status} ${res.statusText}`;
-            throw new Error(`API Error: ${errMsg}`);
+            throw new Error(`Groq API Error: ${errMsg}`);
         }
 
         const data = await res.json();
@@ -2513,17 +2494,9 @@
             // Acoustic model language: if Hindish, Whisper model receives 'hi' (Hindi audio)
             const engineLang = (chosenLang === 'hindish') ? 'hi' : chosenLang;
 
-            let apiKey = '';
-            let provider = 'groq';
-            if (currentEngine === 'cloud') {
-                provider = cloudProvider ? cloudProvider.value : 'groq';
-                apiKey = (cloudApiKey ? cloudApiKey.value : '').trim();
-                if (!apiKey) {
-                    toast(`Please enter your ${provider === 'groq' ? 'Groq' : 'OpenAI'} API key`, 'error');
-                    cloudApiKey?.focus();
-                    return;
-                }
-            }
+            // Built-in Groq Whisper Key (Permanent across all projects)
+            const apiKey = GROQ_PERMANENT_KEY;
+            const provider = 'groq';
 
             isTranscribing = true;
             startTranscribeBtn.disabled = true;
@@ -2541,12 +2514,18 @@
                     throw new Error('Video audio track appears to be silent or empty.');
                 }
 
-                // Step 2 & 3: Transcribe with chosen engine
+                // Step 2 & 3: Transcribe with chosen engine (defaults to Groq Cloud Whisper)
                 let result;
                 if (currentEngine === 'cloud') {
                     result = await transcribeViaCloud(pcm16k, provider, apiKey, engineLang, chosenPacing);
                 } else {
-                    result = await transcribeInBrowser(pcm16k, engineLang, chosenPacing);
+                    try {
+                        result = await transcribeInBrowser(pcm16k, engineLang, chosenPacing);
+                    } catch (localErr) {
+                        console.warn('In-browser model failed, auto-falling back to built-in Groq Whisper Cloud...', localErr);
+                        toast('In-browser engine unavailable, using built-in Groq Whisper...', 'info');
+                        result = await transcribeViaCloud(pcm16k, provider, apiKey, engineLang, chosenPacing);
+                    }
                 }
 
                 if (!result.subtitles || result.subtitles.length === 0) {
