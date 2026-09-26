@@ -1147,11 +1147,27 @@ body {
 }
 
 /* Filter Presets Grid */
-.filter-presets-grid {
+.filter-presets-grid,
+.filter-preset-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 18px;
+}
+
+@media (max-width: 480px) {
+    .filter-presets-grid,
+    .filter-preset-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.filter-intensity-slider-wrap {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 14px;
 }
 
 .filter-preset-card {
@@ -1190,6 +1206,24 @@ body {
     color: #38bdf8;
 }
 
+[data-theme="light"] .filter-preset-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+[data-theme="light"] .filter-preset-card:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+[data-theme="light"] .filter-preset-card.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
+}
+[data-theme="light"] .filter-intensity-slider-wrap {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
 .filter-thumb-preview {
     width: 100%;
     height: 36px;
@@ -1209,19 +1243,33 @@ body {
     background: #1e293b;
     color: var(--text-muted);
 }
+.filter-thumb-none::after {
+    content: "NATURAL";
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    opacity: 0.75;
+}
+[data-theme="light"] .filter-thumb-none {
+    background: #e2e8f0;
+    color: #64748b;
+}
+
 .filter-thumb-cinematic {
     background: linear-gradient(135deg, #091e3a 0%, #1e1b4b 35%, #78350f 70%, #d97706 100%);
 }
 .filter-thumb-teal-orange {
     background: linear-gradient(135deg, #0d9488 0%, #0f172a 45%, #ea580c 100%);
 }
-.filter-thumb-vintage {
+.filter-thumb-vintage,
+.filter-thumb-vintage-film {
     background: linear-gradient(135deg, #78350f 0%, #ca8a04 50%, #451a03 100%);
 }
 .filter-thumb-noir {
     background: linear-gradient(135deg, #000000 0%, #4b5563 50%, #f9fafb 100%);
 }
-.filter-thumb-cyberpunk {
+.filter-thumb-cyberpunk,
+.filter-thumb-cyber-neon {
     background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #06b6d4 100%);
 }
 .filter-thumb-golden-hour {
@@ -1239,7 +1287,8 @@ body {
 .filter-thumb-nordic {
     background: linear-gradient(135deg, #0c4a6e 0%, #0284c7 50%, #e0f2fe 100%);
 }
-.filter-thumb-sunset {
+.filter-thumb-sunset,
+.filter-thumb-warm-sunset {
     background: linear-gradient(135deg, #881337 0%, #e11d48 50%, #fb923c 100%);
 }
 .filter-thumb-emerald {

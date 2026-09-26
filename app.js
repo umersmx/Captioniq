@@ -184,91 +184,97 @@
     let isComparingOriginal = false;
 
     const filterPresets = {
-        none: {
+        'none': {
             name: 'Original Natural',
             desc: 'Pure untouched video',
             brightness: 100, contrast: 100, saturate: 100, warmth: 0,
             sepia: 0, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
         },
-        cinematic: {
+        'teal-orange': {
+            name: 'Teal & Orange',
+            desc: 'Hollywood blockbuster cinematic look',
+            brightness: 102, contrast: 128, saturate: 135, warmth: 16,
+            sepia: 8, grayscale: 0, hueRotate: 345, blur: 0, invert: 0
+        },
+        'vintage-film': {
+            name: 'Vintage 70s',
+            desc: 'Kodak warm retro film & analog grain tone',
+            brightness: 106, contrast: 94, saturate: 88, warmth: 35,
+            sepia: 30, grayscale: 0, hueRotate: 350, blur: 0, invert: 0
+        },
+        'cyber-neon': {
+            name: 'Cyber Neon',
+            desc: 'Tokyo electric blue neon glow & cool shift',
+            brightness: 105, contrast: 130, saturate: 165, warmth: -25,
+            sepia: 0, grayscale: 0, hueRotate: 315, blur: 0, invert: 0
+        },
+        'noir': {
+            name: 'Cinema Noir',
+            desc: 'High-contrast monochrome black & white',
+            brightness: 105, contrast: 145, saturate: 0, warmth: 0,
+            sepia: 0, grayscale: 100, hueRotate: 0, blur: 0, invert: 0
+        },
+        'warm-sunset': {
+            name: 'Warm Sunset',
+            desc: 'Crimson dusk amber glow & rich golden hour',
+            brightness: 106, contrast: 118, saturate: 132, warmth: 45,
+            sepia: 18, grayscale: 0, hueRotate: 355, blur: 0, invert: 0
+        },
+        'emerald': {
+            name: 'Emerald Forest',
+            desc: 'Lush organic greens & earthy vibrant tones',
+            brightness: 102, contrast: 115, saturate: 125, warmth: -8,
+            sepia: 0, grayscale: 0, hueRotate: 65, blur: 0, invert: 0
+        },
+        'sepia': {
+            name: 'Sepia Classic',
+            desc: 'Heritage antique photograph & warm nostalgia',
+            brightness: 100, contrast: 108, saturate: 82, warmth: 25,
+            sepia: 75, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
+        },
+        // Secondary / Alternative Look Presets & Aliases
+        'cinematic': {
             name: 'Cinematic Warm',
             desc: 'Warm rich film contrast',
             brightness: 104, contrast: 124, saturate: 118, warmth: 24,
             sepia: 10, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
         },
-        teal_orange: {
-            name: 'Teal & Orange',
-            desc: 'Hollywood blockbuster look',
-            brightness: 102, contrast: 130, saturate: 135, warmth: 16,
-            sepia: 8, grayscale: 0, hueRotate: 345, blur: 0, invert: 0
-        },
-        vintage: {
-            name: 'Vintage 90s',
-            desc: 'Retro analog VHS tape',
-            brightness: 108, contrast: 92, saturate: 85, warmth: 35,
-            sepia: 32, grayscale: 0, hueRotate: 350, blur: 0, invert: 0
-        },
-        noir: {
-            name: 'Noir Film',
-            desc: 'High-contrast monochrome B&W',
-            brightness: 105, contrast: 145, saturate: 0, warmth: 0,
-            sepia: 0, grayscale: 100, hueRotate: 0, blur: 0, invert: 0
-        },
-        cyberpunk: {
-            name: 'Cyber Neon',
-            desc: 'Electric neon glow & cool shift',
-            brightness: 106, contrast: 130, saturate: 170, warmth: -20,
-            sepia: 0, grayscale: 0, hueRotate: 320, blur: 0, invert: 0
-        },
-        golden_hour: {
+        'golden_hour': {
             name: 'Golden Hour',
             desc: 'Radiant amber sunset glow',
             brightness: 108, contrast: 112, saturate: 130, warmth: 50,
             sepia: 20, grayscale: 0, hueRotate: 355, blur: 0, invert: 0
         },
-        vibrant: {
+        'vibrant': {
             name: 'Vibrant Pop',
             desc: 'Social media punch & clarity',
             brightness: 105, contrast: 118, saturate: 145, warmth: 5,
             sepia: 0, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
         },
-        pastel: {
+        'pastel': {
             name: 'Pastel Soft',
             desc: 'Dreamy lifted shadows & soft tones',
             brightness: 112, contrast: 85, saturate: 110, warmth: 10,
             sepia: 8, grayscale: 0, hueRotate: 5, blur: 0, invert: 0
         },
-        bleach: {
+        'bleach': {
             name: 'Bleach Bypass',
             desc: 'Gritty silver-halide film look',
             brightness: 96, contrast: 145, saturate: 50, warmth: -10,
             sepia: 5, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
         },
-        nordic: {
+        'nordic': {
             name: 'Cold Nordic',
             desc: 'Arctic cool blue temperature',
             brightness: 102, contrast: 115, saturate: 90, warmth: -45,
             sepia: 0, grayscale: 0, hueRotate: 190, blur: 0, invert: 0
-        },
-        sunset: {
-            name: 'Warm Sunset',
-            desc: 'Crimson dusk & deep amber',
-            brightness: 102, contrast: 125, saturate: 130, warmth: 40,
-            sepia: 15, grayscale: 0, hueRotate: 340, blur: 0, invert: 0
-        },
-        emerald: {
-            name: 'Emerald Forest',
-            desc: 'Lush organic greens & earthy tones',
-            brightness: 100, contrast: 115, saturate: 120, warmth: 0,
-            sepia: 10, grayscale: 0, hueRotate: 300, blur: 0, invert: 0
-        },
-        sepia: {
-            name: 'Sepia Classic',
-            desc: 'Heritage antique photograph',
-            brightness: 98, contrast: 105, saturate: 85, warmth: 40,
-            sepia: 75, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
         }
     };
+    // Direct alias mappings for backward compatibility
+    filterPresets.teal_orange = filterPresets['teal-orange'];
+    filterPresets.vintage = filterPresets['vintage-film'];
+    filterPresets.cyberpunk = filterPresets['cyber-neon'];
+    filterPresets.sunset = filterPresets['warm-sunset'];
 
     const defaultStyle = {
         fontFamily: 'Inter',
@@ -988,6 +994,11 @@
     // ── Video Filters Logic & Event Handlers ────────────────────────
     function getEffectiveFilterValues(f = videoFilters) {
         const intensity = (f.intensity !== undefined ? f.intensity : 100) / 100;
+        let normalizedHue = f.hueRotate || 0;
+        if (normalizedHue > 180) normalizedHue -= 360;
+        let effHue = Math.round(normalizedHue * intensity);
+        effHue = (effHue % 360 + 360) % 360;
+
         return {
             brightness: Math.round(100 + (f.brightness - 100) * intensity),
             contrast: Math.round(100 + (f.contrast - 100) * intensity),
@@ -995,7 +1006,7 @@
             warmth: Math.round(f.warmth * intensity),
             sepia: Math.round(f.sepia * intensity),
             grayscale: Math.round(f.grayscale * intensity),
-            hueRotate: Math.round(f.hueRotate * intensity),
+            hueRotate: effHue,
             blur: Math.round((f.blur * intensity) * 10) / 10,
             invert: Math.round(f.invert * intensity)
         };
@@ -1069,18 +1080,22 @@
         }
         if (compareOriginalBtn) {
             compareOriginalBtn.classList.toggle('holding', isComparingOriginal);
-            const span = $('#compareOriginalBtnText');
+            const span = $('#compareOriginalBtnText') || compareOriginalBtn.querySelector('span');
             if (span) span.textContent = isComparingOriginal ? 'Viewing Original' : 'Hold to Compare';
         }
 
         // Update active filter card
         $$('.filter-preset-card').forEach(card => {
-            card.classList.toggle('active', card.dataset.filter === videoFilters.preset);
+            const cardFilter = card.dataset.filter;
+            const currentPreset = videoFilters.preset;
+            const isMatch = cardFilter === currentPreset ||
+                (resolveFilterPreset(currentPreset) && resolveFilterPreset(cardFilter) === resolveFilterPreset(currentPreset));
+            card.classList.toggle('active', isMatch);
         });
 
         // Update status banner text
         if (filterActiveName && filterActiveSub) {
-            const pInfo = filterPresets[videoFilters.preset];
+            const pInfo = resolveFilterPreset(videoFilters.preset);
             if (pInfo && videoFilters.preset !== 'none') {
                 filterActiveName.textContent = pInfo.name + (videoFilters.intensity !== 100 ? ` (${videoFilters.intensity}%)` : '');
                 filterActiveSub.textContent = pInfo.desc;
@@ -1124,9 +1139,30 @@
         applyVideoFilters();
     }
 
+    function resolveFilterPreset(key) {
+        if (!key) return null;
+        if (filterPresets[key]) return filterPresets[key];
+        const dashed = key.replace(/_/g, '-');
+        if (filterPresets[dashed]) return filterPresets[dashed];
+        const underscored = key.replace(/-/g, '_');
+        if (filterPresets[underscored]) return filterPresets[underscored];
+        const aliases = {
+            'vintage-film': 'vintage',
+            'vintage': 'vintage-film',
+            'cyber-neon': 'cyberpunk',
+            'cyberpunk': 'cyber-neon',
+            'warm-sunset': 'sunset',
+            'sunset': 'warm-sunset',
+            'teal-orange': 'teal_orange',
+            'teal_orange': 'teal-orange'
+        };
+        if (aliases[key] && filterPresets[aliases[key]]) return filterPresets[aliases[key]];
+        return null;
+    }
+
     function applyFilterPreset(presetKey) {
-        if (!filterPresets[presetKey]) return;
-        const p = filterPresets[presetKey];
+        const p = resolveFilterPreset(presetKey);
+        if (!p) return;
         videoFilters = {
             ...defaultFilters,
             ...p,
@@ -1165,12 +1201,29 @@
         tabBtnFilters.addEventListener('click', () => switchEditorTab('filters'));
     }
 
-    // Filter intensity slider
+    // Filter intensity slider & badge interactions
     if (filterIntensity) {
         filterIntensity.addEventListener('input', () => {
             videoFilters.intensity = parseInt(filterIntensity.value, 10);
             if (filterIntensityVal) filterIntensityVal.textContent = videoFilters.intensity + '%';
             applyVideoFilters();
+        });
+        filterIntensity.addEventListener('dblclick', () => {
+            filterIntensity.value = 100;
+            videoFilters.intensity = 100;
+            if (filterIntensityVal) filterIntensityVal.textContent = '100%';
+            applyVideoFilters();
+            toast('Reset filter intensity to 100%', 'info');
+        });
+    }
+
+    if (filterIntensityVal) {
+        filterIntensityVal.addEventListener('click', () => {
+            if (filterIntensity) filterIntensity.value = 100;
+            videoFilters.intensity = 100;
+            filterIntensityVal.textContent = '100%';
+            applyVideoFilters();
+            toast('Reset filter intensity to 100%', 'info');
         });
     }
 
