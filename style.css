@@ -12,18 +12,18 @@
 
     --text-primary:  #0f172a;
     --text-secondary:#334155;
-    --text-muted:    #64748b;
+    --text-muted:    #475569;
 
     --accent:        #2563eb;
     --accent-soft:   rgba(37, 99, 235, 0.08);
     --accent-glow:   rgba(37, 99, 235, 0.22);
     --accent-2:      #0284c7;
 
-    --border:        #e2e8f0;
+    --border:        #cbd5e1;
     --border-active: rgba(37, 99, 235, 0.55);
 
-    --success:       #16a34a;
-    --warning:       #d97706;
+    --success:       #15803d;
+    --warning:       #b45309;
     --danger:        #dc2626;
 
     --radius-sm: 8px;
@@ -53,17 +53,17 @@
     --bg-modal:      #10101a;
     --bg-backdrop:   rgba(5, 5, 10, 0.78);
 
-    --text-primary:  #f0f0f5;
-    --text-secondary:#9494aa;
-    --text-muted:    #5e5e72;
+    --text-primary:  #f8fafc;
+    --text-secondary:#cbd5e1;
+    --text-muted:    #94a3b8;
 
     --accent:        #2563eb;
     --accent-soft:   rgba(37, 99, 235, 0.15);
     --accent-glow:   rgba(37, 99, 235, 0.35);
     --accent-2:      #0ea5e9;
 
-    --border:        rgba(255, 255, 255, 0.06);
-    --border-active: rgba(37, 99, 235, 0.4);
+    --border:        rgba(255, 255, 255, 0.08);
+    --border-active: rgba(37, 99, 235, 0.5);
 
     --success:       #4ade80;
     --warning:       #facc15;
@@ -678,13 +678,18 @@ body {
     color: var(--text-primary);
 }
 
+::placeholder {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
 /* Range */
 .control-range {
     width: 100%;
     -webkit-appearance: none;
     appearance: none;
     height: 5px;
-    background: var(--bg-input);
+    background: var(--border);
     border-radius: 3px;
     outline: none;
     cursor: pointer;
