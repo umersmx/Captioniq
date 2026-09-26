@@ -12,3 +12,5 @@ npm-debug.log*
 # Scratch / Temp exports
 *.tmp
 *.temp
+
+.vercel
