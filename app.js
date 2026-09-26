@@ -26,9 +26,9 @@
     const subtitleOverlay = $('#subtitleOverlay');
     const playPauseBtn    = $('#playPauseBtn');
     const muteBtn         = $('#muteBtn');
-    const progressBar     = $('#progressBar');
-    const progressFill    = $('#progressFill');
-    const progressHandle  = $('#progressHandle');
+    const progressBar     = $('#timeline') || $('#progressBar');
+    const progressFill    = $('#timelineProgress') || $('#progressFill');
+    const progressHandle  = $('#timelineHandle') || $('#progressHandle');
     const timeDisplay     = $('#timeDisplay');
 
     const changeVideoBtn  = $('#changeVideoBtn');
@@ -46,6 +46,9 @@
     const closeAutoSubModalBtn = $('#closeAutoSubModalBtn');
     const cancelAutoSubBtn   = $('#cancelAutoSubBtn');
     const startTranscribeBtn = $('#startTranscribeBtn');
+    const modalVideoChip     = $('#modalVideoChip');
+    const modalVideoLabel    = $('#modalVideoLabel');
+    const modalChangeVidBtn  = $('#modalChangeVidBtn');
     const engineTabs         = $$('.engine-tab');
     const tabContentLocal    = $('#tabContentLocal');
     const tabContentCloud    = $('#tabContentCloud');
@@ -76,9 +79,26 @@
     const resChoiceHindi     = $('#resChoiceHindi');
 
     const resetStylesBtn   = $('#resetStylesBtn');
+    const resetFiltersBtn  = $('#resetFiltersBtn');
+    const tabBtnSubtitles  = $('#tabBtnSubtitles');
+    const tabBtnFilters    = $('#tabBtnFilters');
+    const subtitlesControls= $('#subtitlesControls');
+    const filtersControls  = $('#filtersControls');
+    const filterActiveDot  = $('#filterActiveDot');
+    const compareOriginalBtn = $('#compareOriginalBtn');
+    const compareFilterChip= $('#compareFilterChip');
+    const compareFilterChipLabel = $('#compareFilterChipLabel');
+    const filterActiveName = $('#filterActiveName');
+    const filterActiveSub  = $('#filterActiveSub');
+    const filterIntensity  = $('#filterIntensity');
+    const filterIntensityVal = $('#filterIntensityVal');
+    const resetToneBtn     = $('#resetToneBtn');
+    const resetColorBtn    = $('#resetColorBtn');
+    const resetEffectsBtn  = $('#resetEffectsBtn');
+
     const exportBtn        = $('#exportBtn');
     const exportResolution = $('#exportResolution');
-    const exportFps        = $('#exportFps');
+    const exportFps        = $('#exportFramerate') || $('#exportFps');
     const exportProgress   = $('#exportProgress');
     const exportBarFill    = $('#exportBarFill');
     const exportLabel      = $('#exportLabel');
@@ -92,8 +112,113 @@
     let detectedLanguage = null;
     let localTranscriber = null;
     let isTranscribing = false;
+    let pendingAutoTranscribe = false;
     let hindiScriptChoice = 'hindish'; // 'hindish' | 'devanagari'
     let activeScript = 'hindish';
+
+    // ── Video Filters State & Presets ───────────────────────────────
+    const defaultFilters = {
+        preset: 'none',
+        intensity: 100,
+        brightness: 100,
+        contrast: 100,
+        saturate: 100,
+        warmth: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+        blur: 0,
+        invert: 0
+    };
+    let videoFilters = { ...defaultFilters };
+    let isComparingOriginal = false;
+
+    const filterPresets = {
+        none: {
+            name: 'Original Natural',
+            desc: 'Pure untouched video',
+            brightness: 100, contrast: 100, saturate: 100, warmth: 0,
+            sepia: 0, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
+        },
+        cinematic: {
+            name: 'Cinematic Warm',
+            desc: 'Warm rich film contrast',
+            brightness: 104, contrast: 124, saturate: 118, warmth: 24,
+            sepia: 10, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
+        },
+        teal_orange: {
+            name: 'Teal & Orange',
+            desc: 'Hollywood blockbuster look',
+            brightness: 102, contrast: 130, saturate: 135, warmth: 16,
+            sepia: 8, grayscale: 0, hueRotate: 345, blur: 0, invert: 0
+        },
+        vintage: {
+            name: 'Vintage 90s',
+            desc: 'Retro analog VHS tape',
+            brightness: 108, contrast: 92, saturate: 85, warmth: 35,
+            sepia: 32, grayscale: 0, hueRotate: 350, blur: 0, invert: 0
+        },
+        noir: {
+            name: 'Noir Film',
+            desc: 'High-contrast monochrome B&W',
+            brightness: 105, contrast: 145, saturate: 0, warmth: 0,
+            sepia: 0, grayscale: 100, hueRotate: 0, blur: 0, invert: 0
+        },
+        cyberpunk: {
+            name: 'Cyber Neon',
+            desc: 'Electric neon glow & cool shift',
+            brightness: 106, contrast: 130, saturate: 170, warmth: -20,
+            sepia: 0, grayscale: 0, hueRotate: 320, blur: 0, invert: 0
+        },
+        golden_hour: {
+            name: 'Golden Hour',
+            desc: 'Radiant amber sunset glow',
+            brightness: 108, contrast: 112, saturate: 130, warmth: 50,
+            sepia: 20, grayscale: 0, hueRotate: 355, blur: 0, invert: 0
+        },
+        vibrant: {
+            name: 'Vibrant Pop',
+            desc: 'Social media punch & clarity',
+            brightness: 105, contrast: 118, saturate: 145, warmth: 5,
+            sepia: 0, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
+        },
+        pastel: {
+            name: 'Pastel Soft',
+            desc: 'Dreamy lifted shadows & soft tones',
+            brightness: 112, contrast: 85, saturate: 110, warmth: 10,
+            sepia: 8, grayscale: 0, hueRotate: 5, blur: 0, invert: 0
+        },
+        bleach: {
+            name: 'Bleach Bypass',
+            desc: 'Gritty silver-halide film look',
+            brightness: 96, contrast: 145, saturate: 50, warmth: -10,
+            sepia: 5, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
+        },
+        nordic: {
+            name: 'Cold Nordic',
+            desc: 'Arctic cool blue temperature',
+            brightness: 102, contrast: 115, saturate: 90, warmth: -45,
+            sepia: 0, grayscale: 0, hueRotate: 190, blur: 0, invert: 0
+        },
+        sunset: {
+            name: 'Warm Sunset',
+            desc: 'Crimson dusk & deep amber',
+            brightness: 102, contrast: 125, saturate: 130, warmth: 40,
+            sepia: 15, grayscale: 0, hueRotate: 340, blur: 0, invert: 0
+        },
+        emerald: {
+            name: 'Emerald Forest',
+            desc: 'Lush organic greens & earthy tones',
+            brightness: 100, contrast: 115, saturate: 120, warmth: 0,
+            sepia: 10, grayscale: 0, hueRotate: 300, blur: 0, invert: 0
+        },
+        sepia: {
+            name: 'Sepia Classic',
+            desc: 'Heritage antique photograph',
+            brightness: 98, contrast: 105, saturate: 85, warmth: 40,
+            sepia: 75, grayscale: 0, hueRotate: 0, blur: 0, invert: 0
+        }
+    };
 
     const defaultStyle = {
         fontFamily: 'Inter',
@@ -376,7 +501,14 @@
         videoUploadCard.classList.add('has-file');
         videoStatus.textContent = `✓ ${file.name} (${(file.size / 1048576).toFixed(1)} MB)`;
         toast(`Video loaded: ${file.name}`, 'success');
+        updateModalVideoInfo();
         checkReady();
+        if (pendingAutoTranscribe) {
+            pendingAutoTranscribe = false;
+            setTimeout(() => {
+                openAutoSubModal();
+            }, 120);
+        }
     }
 
     function updateVideoAspectRatio() {
@@ -418,6 +550,7 @@
             updateVideoAspectRatio();
             updateScriptToggleChip();
             renderSubtitle();
+            applyVideoFilters();
         }
     }
 
@@ -451,23 +584,26 @@
         muteBtn.style.opacity = videoPlayer.muted ? '0.4' : '1';
     });
 
-    videoPlayer.addEventListener('timeupdate', () => {
-        if (!videoPlayer.duration) return;
-        const pct = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-        progressFill.style.width = pct + '%';
-        progressHandle.style.left = pct + '%';
-        timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
-        renderSubtitle();
-    });
+    if (videoPlayer) {
+        videoPlayer.addEventListener('timeupdate', () => {
+            if (!videoPlayer.duration) return;
+            const pct = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            if (progressFill) progressFill.style.width = pct + '%';
+            if (progressHandle) progressHandle.style.left = pct + '%';
+            if (timeDisplay) timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
+            renderSubtitle();
+        });
+    }
 
     // Progress bar seeking
     let isSeeking = false;
     function seekFromEvent(e) {
+        if (!progressBar || !videoPlayer || !videoPlayer.duration) return;
         const rect = progressBar.getBoundingClientRect();
         const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         videoPlayer.currentTime = pct * videoPlayer.duration;
     }
-    progressBar.addEventListener('mousedown', (e) => { isSeeking = true; seekFromEvent(e); });
+    if (progressBar) progressBar.addEventListener('mousedown', (e) => { isSeeking = true; seekFromEvent(e); });
     document.addEventListener('mousemove', (e) => { if (isSeeking) seekFromEvent(e); });
     document.addEventListener('mouseup', () => { isSeeking = false; });
 
@@ -696,6 +832,335 @@
         $$('.preset-btn').forEach(b => b.classList.remove('active'));
         toast('Styles reset to defaults', 'info');
     });
+
+    // ── Video Filters Logic & Event Handlers ────────────────────────
+    function getEffectiveFilterValues(f = videoFilters) {
+        const intensity = (f.intensity !== undefined ? f.intensity : 100) / 100;
+        return {
+            brightness: Math.round(100 + (f.brightness - 100) * intensity),
+            contrast: Math.round(100 + (f.contrast - 100) * intensity),
+            saturate: Math.round(100 + (f.saturate - 100) * intensity),
+            warmth: Math.round(f.warmth * intensity),
+            sepia: Math.round(f.sepia * intensity),
+            grayscale: Math.round(f.grayscale * intensity),
+            hueRotate: Math.round(f.hueRotate * intensity),
+            blur: Math.round((f.blur * intensity) * 10) / 10,
+            invert: Math.round(f.invert * intensity)
+        };
+    }
+
+    function getFilterCssString(f = videoFilters) {
+        if (isComparingOriginal) return 'none';
+
+        const eff = getEffectiveFilterValues(f);
+        const isDefault = eff.brightness === 100 &&
+            eff.contrast === 100 &&
+            eff.saturate === 100 &&
+            eff.warmth === 0 &&
+            eff.sepia === 0 &&
+            eff.grayscale === 0 &&
+            eff.hueRotate === 0 &&
+            eff.blur === 0 &&
+            eff.invert === 0;
+
+        if (isDefault) return 'none';
+
+        const parts = [];
+        if (eff.brightness !== 100) parts.push(`brightness(${eff.brightness}%)`);
+        if (eff.contrast !== 100) parts.push(`contrast(${eff.contrast}%)`);
+
+        // Compute effective saturation with warmth adjustment
+        let sat = eff.saturate;
+        if (eff.warmth > 0) sat = sat * (1 + (eff.warmth / 100) * 0.15);
+        else if (eff.warmth < 0) sat = sat * (1 + (eff.warmth / 100) * 0.1);
+        sat = Math.round(sat);
+        if (sat !== 100) parts.push(`saturate(${sat}%)`);
+
+        // Warmth / temperature calculations
+        if (eff.warmth > 0) {
+            const warmSepia = Math.min(100, Math.round(eff.sepia + (eff.warmth / 100) * 28));
+            if (warmSepia > 0) parts.push(`sepia(${warmSepia}%)`);
+            const warmHue = (eff.hueRotate - Math.round((eff.warmth / 100) * 8) + 360) % 360;
+            if (warmHue !== 0) parts.push(`hue-rotate(${warmHue}deg)`);
+        } else if (eff.warmth < 0) {
+            if (eff.sepia > 0) parts.push(`sepia(${eff.sepia}%)`);
+            const coolHue = (eff.hueRotate + Math.round(Math.abs(eff.warmth / 100) * 14)) % 360;
+            if (coolHue !== 0) parts.push(`hue-rotate(${coolHue}deg)`);
+        } else {
+            if (eff.sepia > 0) parts.push(`sepia(${eff.sepia}%)`);
+            if (eff.hueRotate !== 0) parts.push(`hue-rotate(${eff.hueRotate}deg)`);
+        }
+
+        if (eff.grayscale > 0) parts.push(`grayscale(${eff.grayscale}%)`);
+        if (eff.invert > 0) parts.push(`invert(${eff.invert}%)`);
+        if (eff.blur > 0) parts.push(`blur(${eff.blur}px)`);
+
+        return parts.length ? parts.join(' ') : 'none';
+    }
+
+    function applyVideoFilters() {
+        const filterCss = getFilterCssString();
+        if (videoPlayer) {
+            videoPlayer.style.filter = filterCss === 'none' ? '' : filterCss;
+        }
+
+        const isFiltered = filterCss !== 'none';
+        if (filterActiveDot) {
+            filterActiveDot.classList.toggle('hidden', !isFiltered);
+        }
+        if (compareFilterChip) {
+            compareFilterChip.classList.toggle('hidden', !isFiltered && videoFilters.preset === 'none');
+            compareFilterChip.classList.toggle('comparing', isComparingOriginal);
+            if (compareFilterChipLabel) {
+                compareFilterChipLabel.textContent = isComparingOriginal ? 'Showing Original' : 'Compare Filter';
+            }
+        }
+        if (compareOriginalBtn) {
+            compareOriginalBtn.classList.toggle('holding', isComparingOriginal);
+            const span = $('#compareOriginalBtnText');
+            if (span) span.textContent = isComparingOriginal ? 'Viewing Original' : 'Hold to Compare';
+        }
+
+        // Update active filter card
+        $$('.filter-preset-card').forEach(card => {
+            card.classList.toggle('active', card.dataset.filter === videoFilters.preset);
+        });
+
+        // Update status banner text
+        if (filterActiveName && filterActiveSub) {
+            const pInfo = filterPresets[videoFilters.preset];
+            if (pInfo && videoFilters.preset !== 'none') {
+                filterActiveName.textContent = pInfo.name + (videoFilters.intensity !== 100 ? ` (${videoFilters.intensity}%)` : '');
+                filterActiveSub.textContent = pInfo.desc;
+            } else if (isFiltered) {
+                filterActiveName.textContent = 'Custom Grade';
+                filterActiveSub.textContent = 'Manual adjustments applied';
+            } else {
+                filterActiveName.textContent = 'Original Natural';
+                filterActiveSub.textContent = 'Pure untouched video';
+            }
+        }
+    }
+
+    function syncFilterUI() {
+        const f = videoFilters;
+        if (filterIntensity) filterIntensity.value = f.intensity !== undefined ? f.intensity : 100;
+        if (filterIntensityVal) filterIntensityVal.textContent = (f.intensity !== undefined ? f.intensity : 100) + '%';
+
+        const sliderMap = [
+            { id: 'filterBrightness', valId: 'filterBrightnessVal', prop: 'brightness', unit: '%' },
+            { id: 'filterContrast', valId: 'filterContrastVal', prop: 'contrast', unit: '%' },
+            { id: 'filterSaturate', valId: 'filterSaturateVal', prop: 'saturate', unit: '%' },
+            { id: 'filterWarmth', valId: 'filterWarmthVal', prop: 'warmth', unit: '%', signed: true },
+            { id: 'filterHueRotate', valId: 'filterHueRotateVal', prop: 'hueRotate', unit: '°' },
+            { id: 'filterSepia', valId: 'filterSepiaVal', prop: 'sepia', unit: '%' },
+            { id: 'filterGrayscale', valId: 'filterGrayscaleVal', prop: 'grayscale', unit: '%' },
+            { id: 'filterBlur', valId: 'filterBlurVal', prop: 'blur', unit: 'px' },
+            { id: 'filterInvert', valId: 'filterInvertVal', prop: 'invert', unit: '%' }
+        ];
+
+        sliderMap.forEach(({ id, valId, prop, unit, signed }) => {
+            const el = $('#' + id);
+            const valEl = $('#' + valId);
+            if (el) el.value = f[prop];
+            if (valEl) {
+                const val = f[prop];
+                valEl.textContent = (signed && val > 0 ? '+' : '') + val + unit;
+            }
+        });
+
+        applyVideoFilters();
+    }
+
+    function applyFilterPreset(presetKey) {
+        if (!filterPresets[presetKey]) return;
+        const p = filterPresets[presetKey];
+        videoFilters = {
+            ...defaultFilters,
+            ...p,
+            preset: presetKey,
+            intensity: videoFilters.intensity !== undefined ? videoFilters.intensity : 100
+        };
+        syncFilterUI();
+        if (presetKey === 'none') {
+            toast('Reset to original natural video', 'info');
+        } else {
+            toast(`Applied "${p.name}" video filter`, 'info');
+        }
+    }
+
+    function switchEditorTab(tabName) {
+        if (tabName === 'filters') {
+            if (tabBtnFilters) tabBtnFilters.classList.add('active');
+            if (tabBtnSubtitles) tabBtnSubtitles.classList.remove('active');
+            if (subtitlesControls) subtitlesControls.classList.add('hidden');
+            if (filtersControls) filtersControls.classList.remove('hidden');
+            if (resetStylesBtn) resetStylesBtn.classList.add('hidden');
+            if (resetFiltersBtn) resetFiltersBtn.classList.remove('hidden');
+        } else {
+            if (tabBtnSubtitles) tabBtnSubtitles.classList.add('active');
+            if (tabBtnFilters) tabBtnFilters.classList.remove('active');
+            if (filtersControls) filtersControls.classList.add('hidden');
+            if (subtitlesControls) subtitlesControls.classList.remove('hidden');
+            if (resetFiltersBtn) resetFiltersBtn.classList.add('hidden');
+            if (resetStylesBtn) resetStylesBtn.classList.remove('hidden');
+        }
+    }
+
+    // Tab switching bindings
+    if (tabBtnSubtitles && tabBtnFilters) {
+        tabBtnSubtitles.addEventListener('click', () => switchEditorTab('subtitles'));
+        tabBtnFilters.addEventListener('click', () => switchEditorTab('filters'));
+    }
+
+    // Filter intensity slider
+    if (filterIntensity) {
+        filterIntensity.addEventListener('input', () => {
+            videoFilters.intensity = parseInt(filterIntensity.value, 10);
+            if (filterIntensityVal) filterIntensityVal.textContent = videoFilters.intensity + '%';
+            applyVideoFilters();
+        });
+    }
+
+    // Filter presets grid clicks
+    $$('.filter-preset-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const pKey = card.dataset.filter;
+            applyFilterPreset(pKey);
+        });
+    });
+
+    // Filter fine-tuning sliders
+    const filterSliderMap = [
+        { id: 'filterBrightness', valId: 'filterBrightnessVal', prop: 'brightness', unit: '%' },
+        { id: 'filterContrast', valId: 'filterContrastVal', prop: 'contrast', unit: '%' },
+        { id: 'filterSaturate', valId: 'filterSaturateVal', prop: 'saturate', unit: '%' },
+        { id: 'filterWarmth', valId: 'filterWarmthVal', prop: 'warmth', unit: '%', signed: true },
+        { id: 'filterHueRotate', valId: 'filterHueRotateVal', prop: 'hueRotate', unit: '°' },
+        { id: 'filterSepia', valId: 'filterSepiaVal', prop: 'sepia', unit: '%' },
+        { id: 'filterGrayscale', valId: 'filterGrayscaleVal', prop: 'grayscale', unit: '%' },
+        { id: 'filterBlur', valId: 'filterBlurVal', prop: 'blur', unit: 'px' },
+        { id: 'filterInvert', valId: 'filterInvertVal', prop: 'invert', unit: '%' }
+    ];
+
+    filterSliderMap.forEach(({ id, valId, prop, unit, signed }) => {
+        const input = $('#' + id);
+        const valBadge = $('#' + valId);
+        if (!input) return;
+
+        input.addEventListener('input', () => {
+            const val = parseFloat(input.value);
+            videoFilters[prop] = val;
+            if (videoFilters.preset !== 'none') {
+                const presetDef = filterPresets[videoFilters.preset];
+                if (presetDef && presetDef[prop] !== val) {
+                    videoFilters.preset = 'custom';
+                }
+            }
+            if (valBadge) {
+                valBadge.textContent = (signed && val > 0 ? '+' : '') + val + unit;
+            }
+            applyVideoFilters();
+        });
+
+        // Double-click slider to reset that slider
+        input.addEventListener('dblclick', () => {
+            const defVal = parseFloat(input.dataset.default || 0);
+            input.value = defVal;
+            videoFilters[prop] = defVal;
+            if (valBadge) valBadge.textContent = (signed && defVal > 0 ? '+' : '') + defVal + unit;
+            applyVideoFilters();
+        });
+
+        // Click badge to reset that slider
+        if (valBadge) {
+            valBadge.addEventListener('click', () => {
+                const defVal = parseFloat(input.dataset.default || 0);
+                input.value = defVal;
+                videoFilters[prop] = defVal;
+                valBadge.textContent = (signed && defVal > 0 ? '+' : '') + defVal + unit;
+                applyVideoFilters();
+                toast(`Reset ${prop} to ${defVal}${unit}`, 'info');
+            });
+        }
+    });
+
+    // Subgroup reset buttons
+    if (resetToneBtn) {
+        resetToneBtn.addEventListener('click', () => {
+            videoFilters.brightness = 100;
+            videoFilters.contrast = 100;
+            videoFilters.preset = 'custom';
+            syncFilterUI();
+            toast('Reset Tone controls', 'info');
+        });
+    }
+    if (resetColorBtn) {
+        resetColorBtn.addEventListener('click', () => {
+            videoFilters.saturate = 100;
+            videoFilters.warmth = 0;
+            videoFilters.hueRotate = 0;
+            videoFilters.preset = 'custom';
+            syncFilterUI();
+            toast('Reset Color controls', 'info');
+        });
+    }
+    if (resetEffectsBtn) {
+        resetEffectsBtn.addEventListener('click', () => {
+            videoFilters.sepia = 0;
+            videoFilters.grayscale = 0;
+            videoFilters.blur = 0;
+            videoFilters.invert = 0;
+            videoFilters.preset = 'custom';
+            syncFilterUI();
+            toast('Reset Effects controls', 'info');
+        });
+    }
+
+    // Reset all filters in header
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', () => {
+            videoFilters = { ...defaultFilters };
+            syncFilterUI();
+            toast('Video filters reset to original', 'info');
+        });
+    }
+
+    // Compare original button (Hold to Compare)
+    if (compareOriginalBtn) {
+        const startCompare = (e) => {
+            e.preventDefault();
+            isComparingOriginal = true;
+            applyVideoFilters();
+        };
+        const endCompare = (e) => {
+            e.preventDefault();
+            isComparingOriginal = false;
+            applyVideoFilters();
+        };
+        compareOriginalBtn.addEventListener('mousedown', startCompare);
+        compareOriginalBtn.addEventListener('touchstart', startCompare, { passive: false });
+        window.addEventListener('mouseup', () => {
+            if (isComparingOriginal) {
+                isComparingOriginal = false;
+                applyVideoFilters();
+            }
+        });
+        window.addEventListener('touchend', () => {
+            if (isComparingOriginal) {
+                isComparingOriginal = false;
+                applyVideoFilters();
+            }
+        });
+    }
+
+    // Compare filter chip below video preview
+    if (compareFilterChip) {
+        compareFilterChip.addEventListener('click', () => {
+            isComparingOriginal = !isComparingOriginal;
+            applyVideoFilters();
+        });
+    }
 
     // ── Export Dimensions & Bitrate Calculation ─────────────────────
     function computeExportDimensions(nativeW, nativeH, quality) {
@@ -936,8 +1401,15 @@
                         exportVid.addEventListener('seeked', onSeeked);
                     });
 
-                    // Draw video frame to canvas
+                    // Draw video frame to canvas with active video filter
+                    const exportFilterCss = getFilterCssString();
+                    if ('filter' in ctx && exportFilterCss && exportFilterCss !== 'none') {
+                        ctx.filter = exportFilterCss;
+                    } else {
+                        ctx.filter = 'none';
+                    }
                     ctx.drawImage(exportVid, 0, 0, W, H);
+                    ctx.filter = 'none'; // Reset so subtitles remain sharp and clean
 
                     // Find and render active subtitle
                     const activeSub = subtitles.find(s => targetTime >= s.start && targetTime <= s.end);
@@ -1025,7 +1497,14 @@
                         if (recorder && recorder.state !== 'inactive') recorder.stop();
                         return;
                     }
+                    const exportFilterCss = getFilterCssString();
+                    if ('filter' in ctx && exportFilterCss && exportFilterCss !== 'none') {
+                        ctx.filter = exportFilterCss;
+                    } else {
+                        ctx.filter = 'none';
+                    }
                     ctx.drawImage(exportVid, 0, 0, W, H);
+                    ctx.filter = 'none';
                     const currentTime = exportVid.currentTime;
                     const activeSub = subtitles.find(s => currentTime >= s.start && currentTime <= s.end);
                     if (activeSub) drawSubtitleOnCanvas(ctx, activeSub.text, W, H);
@@ -1376,14 +1855,24 @@
         });
     }
 
-    function openAutoSubModal() {
-        if (!videoFile) {
-            toast('Please upload a video file first!', 'info');
-            videoUploadCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            videoUploadCard.classList.add('drag-over');
-            setTimeout(() => videoUploadCard.classList.remove('drag-over'), 1200);
-            return;
+    function updateModalVideoInfo() {
+        if (!modalVideoLabel) return;
+        if (videoFile) {
+            const cleanName = videoFile.name.replace(/[&<>"']/g, '');
+            modalVideoLabel.innerHTML = `<strong>${cleanName}</strong> (${(videoFile.size / (1024 * 1024)).toFixed(1)} MB)`;
+            modalVideoChip?.classList.add('has-video');
+            modalVideoChip?.classList.remove('no-file');
+            if (modalChangeVidBtn) modalChangeVidBtn.textContent = 'Change Video';
+        } else {
+            modalVideoLabel.textContent = 'No video selected yet — click to browse';
+            modalVideoChip?.classList.remove('has-video');
+            modalVideoChip?.classList.add('no-file');
+            if (modalChangeVidBtn) modalChangeVidBtn.textContent = 'Browse Video';
         }
+    }
+
+    function openAutoSubModal() {
+        updateModalVideoInfo();
         resetAiModalState();
         autoSubModal.classList.remove('hidden');
     }
@@ -1396,8 +1885,23 @@
         autoSubModal.classList.add('hidden');
     }
 
+    // Both Auto-Transcribe buttons open the modal directly!
     if (triggerAutoSubUploadBtn) triggerAutoSubUploadBtn.addEventListener('click', openAutoSubModal);
     if (autoSubEditorBtn) autoSubEditorBtn.addEventListener('click', openAutoSubModal);
+
+    // Clicking change/browse video inside the modal triggers file picker
+    if (modalChangeVidBtn) {
+        modalChangeVidBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            videoInput?.click();
+        });
+    }
+    if (modalVideoChip) {
+        modalVideoChip.addEventListener('click', () => {
+            videoInput?.click();
+        });
+    }
+
     if (closeAutoSubModalBtn) closeAutoSubModalBtn.addEventListener('click', closeAutoSubModal);
     if (cancelAutoSubBtn) cancelAutoSubBtn.addEventListener('click', closeAutoSubModal);
 
@@ -1416,7 +1920,10 @@
             startTranscribeBtn.disabled = false;
             startTranscribeBtn.innerHTML = 'Start Auto-Transcription';
         }
-        if (aiProgressBar) aiProgressBar.style.width = '0%';
+        if (aiProgressBar) {
+            aiProgressBar.style.width = '0%';
+            aiProgressBar.style.background = 'var(--gradient-primary)';
+        }
         [stepAudio, stepModel, stepTranscribe].forEach(s => {
             if (s) { s.classList.remove('active', 'done'); }
         });
@@ -1449,39 +1956,192 @@
         }
     }
 
-    // Audio extraction & 16kHz resampler
+    // High quality linear interpolation resampler to 16kHz mono PCM for Whisper
+    function resamplePcmTo16k(pcmSamples, sourceSampleRate) {
+        if (sourceSampleRate === 16000) return pcmSamples;
+        const ratio = sourceSampleRate / 16000;
+        const newLength = Math.round(pcmSamples.length / ratio);
+        const result = new Float32Array(newLength);
+        for (let i = 0; i < newLength; i++) {
+            const srcIdx = i * ratio;
+            const low = Math.floor(srcIdx);
+            const high = Math.min(low + 1, pcmSamples.length - 1);
+            const weight = srcIdx - low;
+            result[i] = pcmSamples[low] * (1 - weight) + pcmSamples[high] * weight;
+        }
+        return result;
+    }
+
+    // MediaElement audio extraction fallback: works on any browser-supported video format (MP4, WebM, MOV, MKV)
+    function extractAudioViaMediaElement(file, onProgress) {
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const tempVideo = document.createElement('video');
+            tempVideo.preload = 'auto';
+            tempVideo.playsInline = true;
+            tempVideo.src = url;
+            // Attach to document so browser doesn't throttle or treat as detached node
+            tempVideo.style.cssText = 'position:fixed;bottom:-9999px;left:-9999px;width:2px;height:2px;opacity:0.001;pointer-events:none;';
+            document.body.appendChild(tempVideo);
+
+            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioCtxClass();
+            let source, processor, silenceGain;
+
+            try {
+                source = audioCtx.createMediaElementSource(tempVideo);
+                processor = audioCtx.createScriptProcessor(4096, 1, 1);
+                silenceGain = audioCtx.createGain();
+                silenceGain.gain.value = 0; // Completely silent to user's speakers
+
+                source.connect(processor);
+                processor.connect(silenceGain);
+                silenceGain.connect(audioCtx.destination);
+            } catch (initErr) {
+                cleanup();
+                reject(new Error('Audio processing pipeline initialization failed: ' + initErr.message));
+                return;
+            }
+
+            const chunks = [];
+            let totalSamples = 0;
+
+            processor.onaudioprocess = (e) => {
+                const input = e.inputBuffer.getChannelData(0);
+                const chunk = new Float32Array(input.length);
+                chunk.set(input);
+                chunks.push(chunk);
+                totalSamples += chunk.length;
+
+                if (tempVideo.duration && tempVideo.duration > 0) {
+                    const pct = Math.min(95, Math.round((tempVideo.currentTime / tempVideo.duration) * 100));
+                    onProgress?.(35 + Math.round(pct * 0.6));
+                }
+            };
+
+            let cleanedUp = false;
+            function cleanup() {
+                if (cleanedUp) return;
+                cleanedUp = true;
+                try { tempVideo.pause(); } catch (_) {}
+                try { tempVideo.removeAttribute('src'); } catch (_) {}
+                try { tempVideo.load(); } catch (_) {}
+                if (tempVideo.parentNode) tempVideo.parentNode.removeChild(tempVideo);
+                URL.revokeObjectURL(url);
+                try { processor.disconnect(); } catch (_) {}
+                try { source.disconnect(); } catch (_) {}
+                try { silenceGain.disconnect(); } catch (_) {}
+                try { audioCtx.close(); } catch (_) {}
+            }
+
+            function finish() {
+                cleanup();
+                if (totalSamples === 0) {
+                    reject(new Error('No audio data could be captured from video file. Please verify the video has sound.'));
+                    return;
+                }
+                const combined = new Float32Array(totalSamples);
+                let offset = 0;
+                for (const chunk of chunks) {
+                    combined.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                const pcm16k = resamplePcmTo16k(combined, audioCtx.sampleRate);
+                resolve({
+                    pcm16k,
+                    duration: totalSamples / audioCtx.sampleRate
+                });
+            }
+
+            const timeout = setTimeout(() => {
+                if (totalSamples > 0) {
+                    finish();
+                } else {
+                    cleanup();
+                    reject(new Error('Audio extraction timed out after 60 seconds.'));
+                }
+            }, 60000);
+
+            tempVideo.onended = () => {
+                clearTimeout(timeout);
+                finish();
+            };
+
+            tempVideo.onerror = () => {
+                clearTimeout(timeout);
+                cleanup();
+                reject(new Error('Video element error during audio decoding: ' + (tempVideo.error?.message || 'unknown error')));
+            };
+
+            const startPlayback = async () => {
+                try {
+                    if (audioCtx.state === 'suspended') {
+                        await audioCtx.resume();
+                    }
+                    tempVideo.playbackRate = 8.0; // 8x fast-forward processing
+                    tempVideo.muted = false;
+                    tempVideo.volume = 1;
+                    await tempVideo.play();
+                } catch (playErr) {
+                    console.warn('High-speed playback failed, falling back to 1x rate:', playErr);
+                    try {
+                        tempVideo.playbackRate = 1.0;
+                        await tempVideo.play();
+                    } catch (playErr2) {
+                        clearTimeout(timeout);
+                        cleanup();
+                        reject(new Error('Unable to start media stream for extraction: ' + playErr2.message));
+                    }
+                }
+            };
+
+            if (tempVideo.readyState >= 2) {
+                startPlayback();
+            } else {
+                tempVideo.oncanplay = () => {
+                    startPlayback();
+                };
+            }
+        });
+    }
+
+    // Audio extraction & 16kHz resampler with dual-engine fallback
     async function extractAudioData(file, onProgress) {
         onProgress?.(10);
-        const arrayBuffer = await file.arrayBuffer();
-        onProgress?.(30);
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let audioBuffer;
+        // Method 1: Fast direct AudioContext.decodeAudioData
         try {
-            audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
-        } catch (err) {
-            audioCtx.close();
-            throw new Error('Unable to extract audio track from video file: ' + err.message);
+            const arrayBuffer = await file.arrayBuffer();
+            onProgress?.(30);
+
+            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioCtxClass();
+            let audioBuffer = null;
+            try {
+                audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+            } catch (err) {
+                console.warn('Direct decodeAudioData could not parse container:', err.message);
+            } finally {
+                audioCtx.close().catch(() => {});
+            }
+
+            if (audioBuffer && audioBuffer.duration > 0) {
+                onProgress?.(80);
+                const rawPcm = audioBuffer.getChannelData(0);
+                const pcm16k = resamplePcmTo16k(rawPcm, audioBuffer.sampleRate);
+                onProgress?.(95);
+                return {
+                    pcm16k,
+                    duration: audioBuffer.duration,
+                };
+            }
+        } catch (directErr) {
+            console.warn('Direct decodeAudioData threw, falling back to MediaElement audio extractor:', directErr);
         }
 
-        onProgress?.(60);
-        const targetSampleRate = 16000;
-        const targetLength = Math.max(1, Math.ceil(audioBuffer.duration * targetSampleRate));
-        const offlineCtx = new OfflineAudioContext(1, targetLength, targetSampleRate);
-
-        const source = offlineCtx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(offlineCtx.destination);
-        source.start(0);
-
-        const rendered = await offlineCtx.startRendering();
-        audioCtx.close();
-        onProgress?.(95);
-
-        return {
-            pcm16k: rendered.getChannelData(0),
-            duration: audioBuffer.duration,
-        };
+        // Method 2: Resilient MediaElement fallback (guaranteed for MP4/WebM/MOV)
+        onProgress?.(35);
+        return await extractAudioViaMediaElement(file, onProgress);
     }
 
     // Convert Float32Array PCM to standard 16-bit WAV Blob
@@ -1713,6 +2373,10 @@
 
         const { pipeline, env } = transformers;
         env.allowLocalModels = false;
+        env.useBrowserCache = true;
+        if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+            env.backends.onnx.wasm.numThreads = 1;
+        }
 
         if (!localTranscriber) {
             updateAiStep('model', 'Loading Whisper model (cached locally)…', 45);
@@ -1836,7 +2500,10 @@
         startTranscribeBtn.addEventListener('click', async () => {
             if (isTranscribing) return;
             if (!videoFile) {
-                toast('Please upload a video first', 'error');
+                toast('Please select a video file first to transcribe', 'info');
+                modalVideoChip?.classList.add('pulse-attention');
+                setTimeout(() => modalVideoChip?.classList.remove('pulse-attention'), 1200);
+                videoInput?.click();
                 return;
             }
 
@@ -1951,12 +2618,21 @@
 
             } catch (err) {
                 console.error('Transcription error:', err);
-                toast('Transcription error: ' + err.message, 'error');
-                if (aiStatusText) aiStatusText.textContent = 'Failed: ' + err.message;
+                const isLocalModelErr = (currentEngine === 'local');
+                let displayMsg = err.message || 'Unknown transcription error';
+                if (isLocalModelErr && (displayMsg.includes('Failed to load') || displayMsg.includes('fetch') || displayMsg.includes('network') || displayMsg.includes('import'))) {
+                    displayMsg = 'Could not load in-browser AI model (check network/HuggingFace access). Or switch to Cloud Whisper tab for instant 1-second transcription.';
+                }
+                toast('Transcription error: ' + displayMsg, 'error');
+                if (aiStatusText) aiStatusText.textContent = 'Failed: ' + displayMsg;
                 if (aiProgressBar) aiProgressBar.style.background = 'var(--danger)';
+                if (startTranscribeBtn) {
+                    startTranscribeBtn.disabled = false;
+                    startTranscribeBtn.innerHTML = '🔄 Retry Auto-Transcription';
+                }
             } finally {
                 isTranscribing = false;
-                if (startTranscribeBtn) {
+                if (startTranscribeBtn && !startTranscribeBtn.innerHTML.includes('Retry')) {
                     startTranscribeBtn.disabled = false;
                     startTranscribeBtn.innerHTML = 'Start Auto-Transcription';
                 }
