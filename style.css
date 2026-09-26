@@ -1147,12 +1147,17 @@ body {
 .export-format-badge {
     font-size: 0.68rem;
     font-weight: 700;
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.12);
-    border: 1px solid rgba(74, 222, 128, 0.25);
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
     padding: 2px 8px;
     border-radius: 8px;
     letter-spacing: 0.3px;
+}
+[data-theme="dark"] .export-format-badge {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.25);
 }
 
 .export-settings-grid {
@@ -1257,20 +1262,20 @@ body {
 .toast {
     padding: 12px 20px;
     border-radius: var(--radius-sm);
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #ffffff;
     backdrop-filter: blur(12px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
     animation: toastIn 0.35s ease both;
     display: flex;
     align-items: center;
-    gap: 8px;
-    max-width: 360px;
+    gap: 10px;
+    max-width: 380px;
 }
-.toast.success { background: rgba(74, 222, 128, 0.18); border: 1px solid rgba(74, 222, 128, 0.3); }
-.toast.error   { background: rgba(248, 113, 113, 0.18); border: 1px solid rgba(248, 113, 113, 0.3); }
-.toast.info    { background: rgba(37, 99, 235, 0.18); border: 1px solid rgba(37, 99, 235, 0.3); }
+.toast.success { background: #15803d; border: 1px solid #16a34a; color: #ffffff; }
+.toast.error   { background: #b91c1c; border: 1px solid #dc2626; color: #ffffff; }
+.toast.info    { background: #1d4ed8; border: 1px solid #2563eb; color: #ffffff; }
 .toast.removing { animation: toastOut 0.3s ease both; }
 
 @keyframes toastIn {
@@ -1372,22 +1377,45 @@ body {
 
 /* ===== File Chips Extensions ===== */
 .chip.ai-chip {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: rgba(37, 99, 235, 0.25);
+    color: #1d4ed8;
+    font-weight: 600;
+}
+.chip.ai-chip:hover {
+    background: rgba(37, 99, 235, 0.16);
+    border-color: #2563eb;
+    color: #1e40af;
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.2);
+}
+[data-theme="dark"] .chip.ai-chip {
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(14, 165, 233, 0.25));
     border-color: rgba(37, 99, 235, 0.45);
     color: #e0e7ff;
 }
-.chip.ai-chip:hover {
+[data-theme="dark"] .chip.ai-chip:hover {
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(14, 165, 233, 0.4));
     border-color: #38bdf8;
-    box-shadow: 0 0 16px rgba(37, 99, 235, 0.3);
+    color: #ffffff;
 }
 
 .chip.download-chip {
+    background: rgba(2, 132, 199, 0.08);
+    border-color: rgba(2, 132, 199, 0.25);
+    color: #0369a1;
+    font-weight: 600;
+}
+.chip.download-chip:hover {
+    background: rgba(2, 132, 199, 0.16);
+    border-color: #0284c7;
+    color: #0c4a6e;
+}
+[data-theme="dark"] .chip.download-chip {
     background: rgba(56, 189, 248, 0.12);
     border-color: rgba(56, 189, 248, 0.3);
     color: #7dd3fc;
 }
-.chip.download-chip:hover {
+[data-theme="dark"] .chip.download-chip:hover {
     background: rgba(56, 189, 248, 0.22);
     border-color: #38bdf8;
     color: #bae6fd;
@@ -1399,27 +1427,42 @@ body {
     gap: 6px;
     padding: 6px 14px;
     font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--success);
-    background: rgba(74, 222, 128, 0.12);
-    border: 1px solid rgba(74, 222, 128, 0.3);
+    font-weight: 700;
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
     border-radius: 8px;
     animation: fadeIn 0.3s ease both;
 }
+[data-theme="dark"] .detected-lang-chip {
+    color: var(--success);
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.3);
+}
 
 .chip.script-chip {
-    background: rgba(250, 204, 21, 0.14);
-    border-color: rgba(250, 204, 21, 0.35);
-    color: #fef08a;
-    font-weight: 600;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #b45309;
+    font-weight: 700;
     animation: fadeIn 0.3s ease both;
 }
 .chip.script-chip:hover {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.25);
+    transform: translateY(-1px);
+}
+[data-theme="dark"] .chip.script-chip {
+    background: rgba(250, 204, 21, 0.14);
+    border-color: rgba(250, 204, 21, 0.35);
+    color: #fef08a;
+}
+[data-theme="dark"] .chip.script-chip:hover {
     background: rgba(250, 204, 21, 0.25);
     border-color: #facc15;
-    color: #fff;
-    box-shadow: 0 0 16px rgba(250, 204, 21, 0.3);
-    transform: translateY(-1px);
+    color: #ffffff;
 }
 .script-icon {
     font-size: 0.9rem;
@@ -1542,10 +1585,17 @@ body {
     border-color: rgba(250, 204, 21, 0.3);
 }
 .modal-video-chip.has-video {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+.modal-video-chip.has-video .modal-video-info {
+    color: #15803d;
+}
+[data-theme="dark"] .modal-video-chip.has-video {
     background: rgba(34, 197, 94, 0.08);
     border-color: rgba(74, 222, 128, 0.35);
 }
-.modal-video-chip.has-video .modal-video-info {
+[data-theme="dark"] .modal-video-chip.has-video .modal-video-info {
     color: #4ade80;
 }
 .modal-video-chip.pulse-attention {
@@ -1574,15 +1624,25 @@ body {
     font-size: 0.72rem;
     font-weight: 600;
     font-family: inherit;
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.28);
+    color: #0369a1;
+    background: rgba(2, 132, 199, 0.08);
+    border: 1px solid rgba(2, 132, 199, 0.28);
     border-radius: 6px;
     cursor: pointer;
     transition: all var(--transition-fast);
     flex-shrink: 0;
 }
 .btn-change-modal-vid:hover {
+    background: rgba(2, 132, 199, 0.16);
+    color: #0284c7;
+    border-color: #0284c7;
+}
+[data-theme="dark"] .btn-change-modal-vid {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.28);
+}
+[data-theme="dark"] .btn-change-modal-vid:hover {
     background: rgba(56, 189, 248, 0.25);
     color: #ffffff;
     border-color: #38bdf8;
@@ -2044,12 +2104,17 @@ body {
     align-items: center;
     gap: 5px;
     padding: 3px 8px;
-    background: rgba(74, 222, 128, 0.1);
-    color: #4ade80;
-    border: 1px solid rgba(74, 222, 128, 0.25);
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
     border-radius: 6px;
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
+}
+[data-theme="dark"] .footer-badge-clean {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.25);
 }
 .footer-links {
     display: flex;
